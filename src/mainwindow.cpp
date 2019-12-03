@@ -6,6 +6,7 @@
 #include <QFont>
 #include <QDir>
 #include <QDebug>
+#include <QGraphicsDropShadowEffect>
 
 #include "sudokusolver.h"
 
@@ -20,6 +21,26 @@ struct Op
     int col;    // 操作的列数
     int before; // 更改前的值
 };
+
+QPushButton* createButton(QString text)
+{
+    QFont buttonFont("华文新魏", 15);
+    buttonFont.setPointSize(12);
+    buttonFont.setBold(true);
+
+    QGraphicsDropShadowEffect *shadow_effect = new QGraphicsDropShadowEffect;
+    shadow_effect->setOffset(1, 1);
+    shadow_effect->setColor(Qt::gray);
+    shadow_effect->setBlurRadius(2);
+
+    QPushButton *button = new QPushButton(text);
+    button->setFont(buttonFont);
+    button->setGraphicsEffect(shadow_effect);
+    button->setStyleSheet("QWidget{border-radius:40px;background-color:#FFFFFF;}"
+                          "QPushButton:hover{background-color:rgb(236,236,236);}"
+                          "QPushButton:pressed{background-color:rgb(222,222,222);}");
+    return button;
+}
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -66,22 +87,22 @@ MainWindow::MainWindow(QWidget *parent) :
         }
     }
 
-    QPushButton *loadButton = new QPushButton("Load");
+    QPushButton *loadButton = createButton("load");
     loadButton->setParent(this);
     loadButton->move(startX + (gridSize * 3 + spacing) * 0, gridSize * 9 + 50 + startY);
-    loadButton->setFixedSize(gridSize * 3, 100);
+    loadButton->setFixedSize(gridSize * 3, 80);
     connect(loadButton, &QPushButton::clicked, [&](){loadRandomPuzzle();});
 
-    QPushButton *solveButton = new QPushButton("Solve");
+    QPushButton *solveButton = createButton("solve");
     solveButton->setParent(this);
     solveButton->move(startX + (gridSize * 3 + spacing) * 1, gridSize * 9 + 50 + startY);
-    solveButton->setFixedSize(gridSize * 3, 100);
+    solveButton->setFixedSize(gridSize * 3, 80);
     connect(solveButton, &QPushButton::clicked, [&](){solve();});
 
-    QPushButton *clearButton = new QPushButton("Clear");
+    QPushButton *clearButton = createButton("clear");
     clearButton->setParent(this);
     clearButton->move(startX + (gridSize * 3 + spacing) * 2, gridSize * 9 + 50 + startY);
-    clearButton->setFixedSize(gridSize * 3, 100);
+    clearButton->setFixedSize(gridSize * 3, 80);
     connect(clearButton, &QPushButton::clicked,  [&](){clearAll();});
 
     m_panel = new SelectPanel(75, this);

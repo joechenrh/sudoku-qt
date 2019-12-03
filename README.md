@@ -4,7 +4,7 @@
 
 基于Qt的数独游戏
 
-
+![界面](https://github.com/joechenrh/sudoku-qt/images/screenshot.png)
 
 ## TODO
 

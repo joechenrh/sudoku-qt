@@ -36,7 +36,7 @@ QPushButton* createButton(QString text)
     QPushButton *button = new QPushButton(text);
     button->setFont(buttonFont);
     button->setGraphicsEffect(shadow_effect);
-    button->setStyleSheet("QWidget{border-radius:40px;background-color:#FFFFFF;}"
+    button->setStyleSheet("QWidget{border-radius:40px;background-color:#FFFFFF;color:#5F5F5F;}"
                           "QPushButton:hover{background-color:rgb(236,236,236);}"
                           "QPushButton:pressed{background-color:rgb(222,222,222);}");
     return button;
@@ -89,19 +89,19 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QPushButton *loadButton = createButton("load");
     loadButton->setParent(this);
-    loadButton->move(startX + (gridSize * 3 + spacing) * 0, gridSize * 9 + 50 + startY);
+    loadButton->move(startX + (gridSize * 3 + spacing) * 0, gridSize * 9 + 37 + startY);
     loadButton->setFixedSize(gridSize * 3, 80);
     connect(loadButton, &QPushButton::clicked, [&](){loadRandomPuzzle();});
 
     QPushButton *solveButton = createButton("solve");
     solveButton->setParent(this);
-    solveButton->move(startX + (gridSize * 3 + spacing) * 1, gridSize * 9 + 50 + startY);
+    solveButton->move(startX + (gridSize * 3 + spacing) * 1, gridSize * 9 + 37 + startY);
     solveButton->setFixedSize(gridSize * 3, 80);
     connect(solveButton, &QPushButton::clicked, [&](){solve();});
 
     QPushButton *clearButton = createButton("clear");
     clearButton->setParent(this);
-    clearButton->move(startX + (gridSize * 3 + spacing) * 2, gridSize * 9 + 50 + startY);
+    clearButton->move(startX + (gridSize * 3 + spacing) * 2, gridSize * 9 + 37 + startY);
     clearButton->setFixedSize(gridSize * 3, 80);
     connect(clearButton, &QPushButton::clicked,  [&](){clearAll();});
 
@@ -114,7 +114,7 @@ MainWindow::MainWindow(QWidget *parent) :
     for (int i = 0; i < 9; i++)
     {
        Counter *counter = new Counter(i + 1, gridSize, this);
-       counter->move(gridSize * 9 + 50 + startX, startY + space + i * (space + gridSize + 1));
+       counter->move(gridSize * 9 + 37 + startX, startY + space + i * (space + gridSize + 1));
        m_counters.push_back(counter);
        connect(counter, &Counter::hovered, [=]() {highlight(i + 1, true);});
        connect(counter, &Counter::leave, [=]() {highlight(i + 1, false);});
@@ -198,7 +198,7 @@ void MainWindow::highlight(int num, int active)
 
 void MainWindow::loadRandomPuzzle()
 {
-    QFile file("D:/test.txt");
+    QFile file("E:/1.txt");
     if(!file.open(QFile::ReadOnly))
     {
         return;

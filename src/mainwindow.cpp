@@ -10,8 +10,8 @@
 
 #include "sudokusolver.h"
 
-#define startX 100
-#define startY 100
+#define startX 10
+#define startY 10
 #define gridSize 75
 #define spacing 10
 
@@ -105,7 +105,10 @@ MainWindow::MainWindow(QWidget *parent) :
     clearButton->setFixedSize(gridSize * 3, 80);
     connect(clearButton, &QPushButton::clicked,  [&](){clearAll();});
 
-    m_panel = new SelectPanel(75, this);
+    m_panel = new SelectPanel(75);
+    m_panel->setParent(this);
+    m_panel->close();
+    qDebug() << m_panel->geometry();
 
     int space = std::min(spacing / 10, 1);
     for (int i = 0; i < 9; i++)
@@ -116,6 +119,13 @@ MainWindow::MainWindow(QWidget *parent) :
        connect(counter, &Counter::hovered, [=]() {highlight(i + 1, true);});
        connect(counter, &Counter::leave, [=]() {highlight(i + 1, false);});
     }
+
+    int minHeight = loadButton->geometry().y() + loadButton->geometry().height() + startY;
+    int minWidth = m_counters[0]->geometry().x() + m_counters[0]->geometry().width() + startX;
+    this->setMinimumSize(minWidth, minHeight);
+    Qt::WindowFlags flags = 0;
+    flags |= Qt::WindowMinimizeButtonHint;
+    this->setWindowFlags(flags); // 设置禁止最大化
 
     loadRandomPuzzle();
 }
@@ -248,12 +258,20 @@ void MainWindow::changeBackground(int r, int c)
 // 冲突检测 大概是完成了
 void MainWindow::changeNumber(int r, int c)
 {
-    m_panel->move(gridSize * c + startX + c / 3 * spacing, r * gridSize + startY + r / 3 * spacing + 22);
+    if (m_panel->isVisible())
+    {
+        qDebug() << "Ready to close.";
+        m_panel->close();
+        return;
+    }
+
+    m_panel->move(gridSize * c + startX + c / 3 * spacing, r * gridSize + startY + r / 3 * spacing);
     m_panel->exec();
 
     int selected = m_panel->number();
     if (selected == 0)
     {
+        qDebug() << "Nothing was choosen.";
         return;
     }
 
@@ -287,7 +305,11 @@ void MainWindow::changeNumber(int r, int c)
             }
         }
     }
-    m_grids[r][c]->addConflict(num);
+
+    if (num > 0)
+    {
+        m_grids[r][c]->addConflict(num);
+    }
 }
 
 // 没有结果时的处理

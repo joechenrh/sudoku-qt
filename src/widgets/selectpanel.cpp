@@ -1,8 +1,5 @@
 ﻿#include "selectpanel.h"
-#include "hoverbutton.h"
 
-#include <QDebug>
-#include <QPainter>
 #include <QPropertyAnimation>
 
 SelectPanel::SelectPanel(int size, QWidget *parent)
@@ -35,7 +32,7 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
             m_buttons[i * 3 + j] = button;
 
             connect(button, &HoverButton::hovered, [=](){button->setFont(hoverFont); button->setStyleSheet(enterStylesheet);});
-            connect(button, &HoverButton::leave,   [=](){button->setFont(normalFont); button->setStyleSheet(leaveStylesheet);});
+            connect(button, &HoverButton::leaved,   [=](){button->setFont(normalFont); button->setStyleSheet(leaveStylesheet);});
             connect(button, &HoverButton::clicked, [=](){selected = i * 3 + j + 1; this->close();});
             connect(button, &HoverButton::rightClicked, [=](){selected = 0; this->close();});
         }
@@ -74,7 +71,7 @@ bool SelectPanel::close()
     return QDialog::close();
 }
 
-int SelectPanel::number()
+int SelectPanel::number() const
 {
     return selected;
 }

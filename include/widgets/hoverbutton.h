@@ -3,8 +3,6 @@
 
 #include <QPushButton>
 #include <QMouseEvent>
-#include <QPaintEvent>
-#include <QTimer>
 #include <QPropertyAnimation>
 
 class HoverButton : public QPushButton
@@ -14,32 +12,27 @@ class HoverButton : public QPushButton
 public:
     HoverButton(QWidget *parent = NULL);
 
-    void setOpacity(double oppacity);
+    void setOpacity(double opacity);
 
     void hide();
 
-    void vis();
+    void reveal();
 
 protected:
-    void enterEvent( QEvent* e );
+    void enterEvent(QEvent *e);
 
-    void leaveEvent( QEvent* e );
+    void leaveEvent(QEvent *e);
 
 private:
-    bool entered;
-
-    QTimer *timer;
-
     QPropertyAnimation *m_animation;
 
 private slots:
     void mousePressEvent(QMouseEvent *e);
 
 signals:
-
     void hovered();
 
-    void leave();
+    void leaved();
 
     void rightClicked();
 

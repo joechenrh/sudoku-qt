@@ -2,9 +2,7 @@
 #define SELECTPANEL_H
 
 #include <qDialog>
-#include <QTimer>
 #include <QVector>
-#include <QPaintEvent>
 
 #include "hoverbutton.h"
 
@@ -16,7 +14,7 @@ public:
 
     SelectPanel(int size = 75, QWidget *parent = NULL);
 
-    int number();
+    int number() const;
 
     int exec();
 

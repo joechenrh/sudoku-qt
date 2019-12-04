@@ -8,7 +8,8 @@
 #define MARKER_SHADOW_COLOR "#E6CED6"
 
 
-GridMarker::GridMarker(int size, QWidget *parent) : QLabel(parent), m_size(size)
+GridMarker::GridMarker(int size, QWidget *parent)
+    : QLabel(parent), m_size(size), m_indent(2)
 {
     QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect;
     opacityEffect->setOpacity(0.0);
@@ -18,7 +19,8 @@ GridMarker::GridMarker(int size, QWidget *parent) : QLabel(parent), m_size(size)
 
     m_scaleAnimation = new QPropertyAnimation(this, "geometry");
     m_scaleAnimation->setStartValue(QRect(size / 2, size / 2, 0, 0));
-    m_scaleAnimation->setEndValue(QRect(size / 2, size / 2, 0, 0)); // 不加就不行，因为一开始有绘制一次
+    // 不加下面这句第一次显示错误，估计是reveal里currentValue获取的值不对
+    m_scaleAnimation->setEndValue(QRect(size / 2, size / 2, 0, 0));
     m_scaleAnimation->setDuration(duration);
     m_scaleAnimation->setEasingCurve(QEasingCurve::OutQuad);
 
@@ -65,10 +67,10 @@ void GridMarker::reveal()
         m_opacityAnimation->stop();
     }
 
-    int b = m_size * 0.2 - 3;
+    int start = m_size * 0.2 - m_indent;
 
     m_scaleAnimation->setStartValue(m_scaleAnimation->currentValue());
-    m_scaleAnimation->setEndValue(QRect(b, b, m_size - 2 * b, m_size - 2 * b));
+    m_scaleAnimation->setEndValue(QRect(start, start, m_size - 2 * start, m_size - 2 * start));
     m_scaleAnimation->start();
 
     m_opacityAnimation->setStartValue(m_opacityAnimation->currentValue());
@@ -76,42 +78,24 @@ void GridMarker::reveal()
     m_opacityAnimation->start();
 }
 
-void GridMarker::enterEvent(QEvent *e)
-{
-    emit entered();
-
-    // don't forget to forward the event
-    QWidget::enterEvent( e );
-}
-
-void GridMarker::leaveEvent(QEvent *e)
-{
-    emit leaved();
-
-    // don't forget to forward the event
-    QWidget::enterEvent( e );
-}
-
 void GridMarker::paintEvent(QPaintEvent *event)
 {
-
     QPainter painter(this);
-    painter.setOpacity(1.0);
     painter.setRenderHint(QPainter::Antialiasing);
 
-    if (width() < 6)
+    if (width() < m_indent * 2)
     {
-        painter.drawEllipse(1, 1, 0, 0);
+        painter.drawEllipse(1, 1, 0, 0);  // draw nothing
     }
     else
     {
         painter.setPen(QPen(QBrush(MARKER_SHADOW_COLOR), 1));
         painter.setBrush(QBrush(QColor(MARKER_SHADOW_COLOR)));
-        painter.drawEllipse(3, 5, width() - 6, width() - 6);
+        painter.drawEllipse(m_indent, m_indent + 2, width() - 2 * m_indent, width() - 2 * m_indent);
 
         painter.setPen(QPen(QBrush(MARKER_COLOR), 1));
         painter.setBrush(QBrush(QColor(MARKER_COLOR)));
-        painter.drawEllipse(3, 3, width() - 6, width() - 6);
+        painter.drawEllipse(m_indent, m_indent, width() - 2 * m_indent, width() - 2 * m_indent);
 
     }
 }

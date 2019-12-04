@@ -16,11 +16,11 @@ public:
 
     void setEnabled(bool flag);
 
-    bool getEnabled();
+    bool isEnabled() const;
 
     void setValue(int value);
 
-    int getValue();
+    int value() const;
 
     void hideButton();
 
@@ -63,7 +63,7 @@ private:
 
     QString m_fstyle;  // 顶层按钮的stylesheet
 
-    bool enabled;  // 当前单元格是否可编辑
+    bool m_enabled;  // 当前单元格是否可编辑
 
     int m_value;  // 当前单元格的值
 

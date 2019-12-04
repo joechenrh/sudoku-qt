@@ -2,17 +2,12 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-
-#include <QVector>
-#include <QLabel>
-#include <QPushButton>
-#include <QGridLayout>
 #include <QStack>
 
 #include "hoverbutton.h"
 #include "selectpanel.h"
 #include "gridwidget.h"
-#include "circlewidget.h"
+#include "counter.h"
 
 struct Op;
 
@@ -34,29 +29,41 @@ public:
 private:
     Ui::MainWindow *ui;
 
-    void changeBackground(int r, int c);
+    void smartAssistOn(int r, int c);
 
-    void recoverBackground(int r, int c);
+    void smartAssistOff(int r, int c);
 
-    void changeNumber(int r, int c);
-
-    void clearAll();
+    void changeGrid(int r, int c);
 
     void clearGrid(int r, int c);
+
+    void changeNumber(int r, int c, int previous, int selected);
+
+    void clearAll();
 
     void solve();
 
     void loadRandomPuzzle();
 
-    QVector<QVector<QSet<QPair<int, int>>>> m_controlRanges;
+    void undo();
 
-    QVector<QVector<GridWidget*>> m_grids;
+    void redo();
 
-    QVector<Counter*> m_counters;
+    QVector<QVector<QSet<QPair<int, int>>>> m_controlRanges;  // 储存每个数组单元格的影响范围
 
-    SelectPanel *m_panel;
+    QVector<QVector<GridWidget*>> m_grids;                    // 储存数组单元格的二维数组
 
-    QStack<Op> m_ops;  // add Redo/Undo
+    QVector<Counter*> m_counters;                             // 储存计数控件的数组
+
+    SelectPanel *m_panel;                                     // 修改数值的面板
+
+    QStack<Op> m_ops;                                         // 操作栈，用于记录操作
+
+    QStack<Op> m_ops2;                                        // 操作栈，用于记录回退的操作
+
+    QPushButton *m_undoButton;                                // 回退按钮
+
+    QPushButton *m_redoButton;                                // 重做按钮
 };
 
 #endif // MAINWINDOW_H

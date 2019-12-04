@@ -23,33 +23,22 @@
 
 
 GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
-    : QWidget(parent), enabled(true), m_value(0), m_numConflict(1)
+    : QWidget(parent), m_enabled(true), m_value(0), m_numConflict(1)
 {
-    this->setFixedSize(size, size);
-
+    // 设置大小和阴影
     QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect(this);
     shadow->setOffset(2, 2);
     shadow->setBlurRadius(2);
     shadow->setColor(BACKGROUND_SHADOW_COLOR);
     this->setGraphicsEffect(shadow);
+    this->setFixedSize(size, size);
 
     QString gridStyle = QString("background-color:%1;border:1px solid #C9C9C9;");
-
-    if (row == 0 && col == 0)
+    if ((row == 0 || row == 8) && (col == 0 && col == 8))
     {
-        gridStyle += "border-top-left-radius:15px;";
-    }
-    else if (row == 0 && col == 8)
-    {
-        gridStyle += "border-top-right-radius:15px;";
-    }
-    else if (row == 8 && col == 0)
-    {
-        gridStyle += "border-bottom-left-radius:15px;";
-    }
-    else if (row == 8 && col == 8)
-    {
-        gridStyle += "border-bottom-right-radius:15px;";
+        QString borderStyle = "border-%1-%2-radius:15px;";
+        gridStyle += borderStyle.arg(row == 0 ? "top" : "bottom")
+                                .arg(col == 0 ? "left" : "right");
     }
 
     QFont buttonFont("华文新魏", 20);
@@ -74,6 +63,7 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
     layout->addWidget(m_background);
     layout->setStackingMode(QStackedLayout::StackAll);
 
+    // 最上层的button即承担了按钮的功能，也承担了显示圆环的功能
     int bias = size * 0.125;
     m_fstyle = QString("border-radius:%1px;border:%2px solid %3;"
                        "background-color:transparent;color:%4").arg(size / 2 - bias );
@@ -96,18 +86,18 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
 
 void GridWidget::setEnabled(bool flag)
 {
-    enabled = flag;
-
-    m_fontColor = enabled ? FONT_COLOR_NORMAL : FONT_COLOR_UNABLED;
-    m_borderColor = enabled ? BORDER_COLOR_ENABLED : BORDER_COLOR_UNABLED;
+    m_enabled = flag;
+    m_fontColor = flag ? FONT_COLOR_NORMAL : FONT_COLOR_UNABLED;
+    m_borderColor = flag ? BORDER_COLOR_ENABLED : BORDER_COLOR_UNABLED;
 
     m_button->setStyleSheet(m_fstyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
     m_button->setEnabled(flag);
 }
 
-bool GridWidget::getEnabled()
+//
+bool GridWidget::isEnabled() const
 {
-    return enabled;
+    return m_enabled;
 }
 
 void GridWidget::setValue(int value)
@@ -116,14 +106,14 @@ void GridWidget::setValue(int value)
     m_button->setText(value == 0 ? "" : QString::number(value));
 }
 
-int GridWidget::getValue()
+int GridWidget::value() const
 {
     return m_value;
 }
 
-void GridWidget::enterEvent( QEvent* e )
+void GridWidget::enterEvent(QEvent *e )
 {
-    if (!enabled)
+    if (!m_enabled)
     {
         return;
     }
@@ -140,14 +130,14 @@ void GridWidget::enterEvent( QEvent* e )
 
 }
 
-void GridWidget::leaveEvent( QEvent* e )
+void GridWidget::leaveEvent(QEvent *e)
 {
-    if (!enabled)
+    if (!m_enabled)
     {
         return;
     }
 
-    m_foreground->vis();
+    m_foreground->reveal();
     m_marker->hide();
 
     emit leave();
@@ -165,7 +155,7 @@ void GridWidget::hideButton()
 
 void GridWidget::revealButton()
 {
-    m_foreground->vis();
+    m_foreground->reveal();
 }
 
 void GridWidget::childrenClicked()
@@ -178,15 +168,27 @@ void GridWidget::childrenRightClicked()
     emit rightClicked();
 }
 
+// add conflict number by num
 void GridWidget::addConflict(int num)
 {
+    if (num == 0)
+    {
+        return;
+    }
+
     m_numConflict += num;
     m_borderRadius = BORDER_RADIUS_ENABLED;
     m_button->setStyleSheet(m_fstyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
 }
 
+// subtract conflict number by num
 void GridWidget::removeConflict(int num)
 {
+    if (num == 0)
+    {
+        return;
+    }
+
     m_numConflict -= num;
     if (m_numConflict == 1)
     {
@@ -195,6 +197,7 @@ void GridWidget::removeConflict(int num)
     }
 }
 
+// clean conflict number
 void GridWidget::clearConflict()
 {
     m_numConflict = 1;

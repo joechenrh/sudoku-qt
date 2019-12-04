@@ -2,8 +2,7 @@
 
 #include <QGraphicsEffect>
 
-HoverButton::HoverButton(QWidget *parent)
-    : QPushButton(parent), entered(false)
+HoverButton::HoverButton(QWidget *parent) : QPushButton(parent)
 {
     QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect;
     opacityEffect->setOpacity(0.99);
@@ -21,45 +20,37 @@ void HoverButton::hide()
     {
         m_animation->stop();
     }
+
     m_animation->setStartValue(m_animation->currentValue());
     m_animation->setEndValue(0.0);
     m_animation->start();
 }
 
-void HoverButton::vis()
+void HoverButton::reveal()
 {
     if (m_animation->state() != QAbstractAnimation::Stopped)
     {
         m_animation->stop();
     }
+
     m_animation->setStartValue(m_animation->currentValue());
     m_animation->setEndValue(0.99);
     m_animation->start();
 }
 
-void HoverButton::setOpacity(double oppacity)
+void HoverButton::setOpacity(double opacity)
 {
-    ((QGraphicsOpacityEffect*)(this->graphicsEffect()))->setOpacity(oppacity);
+    ((QGraphicsOpacityEffect*)(this->graphicsEffect()))->setOpacity(opacity);
 }
 
-void HoverButton::enterEvent( QEvent* e )
+void HoverButton::enterEvent(QEvent *e)
 {
-    entered = true;
-
     emit hovered();
-
-    // don't forget to forward the event
-    QWidget::enterEvent( e );
 }
 
-void HoverButton::leaveEvent( QEvent* e )
+void HoverButton::leaveEvent(QEvent *e)
 {
-    entered = false;
-
-    emit leave();
-
-    // don't forget to forward the event
-    QWidget::enterEvent( e );
+    emit leaved();
 }
 
 void HoverButton::mousePressEvent(QMouseEvent *e)

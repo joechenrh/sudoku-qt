@@ -2,9 +2,7 @@
 #define TESTWIDGET_H
 
 #include <QWidget>
-
 #include <QLabel>
-#include <QPushButton>
 
 #include <QPainter>
 #include <QPropertyAnimation>
@@ -27,18 +25,9 @@ private:
 
     int m_size;
 
+    int m_indent;  // 由于drawEllipse时边缘也有一个像素，所以画圆时需要向内缩小至少一个像素，m_indent就是控制缩进的距离
+
     void paintEvent(QPaintEvent *event);
-
-    void enterEvent(QEvent *e);
-
-    void leaveEvent(QEvent *e);
-
-signals:
-    void entered();
-
-    void leaved();
-
-public slots:
 };
 
 #endif // TESTWIDGET_H

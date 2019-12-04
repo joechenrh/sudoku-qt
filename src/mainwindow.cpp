@@ -8,10 +8,10 @@
 
 #include "sudokusolver.h"
 
-#define startX 10
-#define startY 10
-#define gridSize 75
-#define spacing 10
+#define margin 10              // 四周的边缘宽度
+#define gridSize 75            // 格子的大小
+#define halfSize gridSize / 2  // 半个格子的大小，即按钮的高度
+#define spacing 10             // 九宫格之间的间隔
 
 /**
  * @brief 操作数
@@ -41,8 +41,8 @@ QPushButton* createButton(QString text)
     button->setFont(buttonFont);
     button->setGraphicsEffect(shadow_effect);
     button->setStyleSheet(QString("QWidget{border-radius:%1px;background-color:#FFFFFF;color:#5F5F5F;}"
-                          "QPushButton:hover{background-color:rgb(236,236,236);}"
-                          "QPushButton:pressed{background-color:rgb(222,222,222);}").arg(gridSize / 2));
+                                  "QPushButton:hover{background-color:rgb(236,236,236);}"
+                                  "QPushButton:pressed{background-color:rgb(222,222,222);}").arg(gridSize / 2));
     return button;
 }
 
@@ -81,47 +81,55 @@ MainWindow::MainWindow(QWidget *parent) :
 
             GridWidget *grid = new GridWidget(r, c);
             grid->setParent(this);
-            grid->move(startX + c * gridSize + c / 3 * spacing, startY + r * gridSize + r / 3 * spacing);
+            grid->move(margin + c * gridSize + c / 3 * spacing, margin + r * gridSize + r / 3 * spacing);
             m_grids[r][c] = grid;
 
-            connect(grid, &GridWidget::hovered, [=](){smartAssistOn(r, c); });
-            connect(grid, &GridWidget::leave, [=](){smartAssistOff(r, c); });
-            connect(grid, &GridWidget::clicked, [=](){changeGrid(r, c); });
-            connect(grid, &GridWidget::rightClicked, [=](){clearGrid(r, c);});
+            connect(grid, &GridWidget::hovered,      [=](){ smartAssistOn(r, c); });
+            connect(grid, &GridWidget::leave,        [=](){ smartAssistOff(r, c); });
+            connect(grid, &GridWidget::clicked,      [=](){ changeGrid(r, c); });
+            connect(grid, &GridWidget::rightClicked, [=](){ clearGrid(r, c); });
         }
     }
 
     QPushButton *loadButton = createButton("load");
     loadButton->setParent(this);
-    loadButton->move(startX + (gridSize * 3 + spacing) * 0, gridSize * 9.5 + startY);
+    loadButton->move(margin + (gridSize * 3 + spacing) * 0, margin + gridSize * 9 + halfSize);
     loadButton->setFixedSize(gridSize * 3, gridSize);
-    connect(loadButton, &QPushButton::clicked, [&](){loadRandomPuzzle();});
 
     QPushButton *solveButton = createButton("solve");
     solveButton->setParent(this);
-    solveButton->move(startX + (gridSize * 3 + spacing) * 1, gridSize * 9.5 + startY);
+    solveButton->move(margin + (gridSize * 3 + spacing) * 1, margin + gridSize * 9 + halfSize);
     solveButton->setFixedSize(gridSize * 3, gridSize);
-    connect(solveButton, &QPushButton::clicked, [&](){solve();});
 
     QPushButton *clearButton = createButton("clear");
     clearButton->setParent(this);
-    clearButton->move(startX + (gridSize * 3 + spacing) * 2, gridSize * 9.5 + startY);
+    clearButton->move(margin + (gridSize * 3 + spacing) * 2, margin + gridSize * 9 + halfSize);
     clearButton->setFixedSize(gridSize * 3, gridSize);
-    connect(clearButton, &QPushButton::clicked,  [&](){clearAll();});
 
     m_undoButton = new QPushButton("<");
     m_undoButton->setParent(this);
-    m_undoButton->setEnabled(false);
-    m_undoButton->move(gridSize * 9.5 + startX, gridSize * 9.5 + startY);
-    m_undoButton->setFixedSize(gridSize * 0.4, gridSize);
-    connect(m_undoButton, &QPushButton::clicked,  [&](){undo();});
+    m_undoButton->move(margin + gridSize * 9 + halfSize, margin + gridSize * 9 + halfSize);
+    m_undoButton->setFixedSize(halfSize, gridSize);
+    m_undoButton->setStyleSheet("QWidget{background-color:#FFFFFF;color:#5F5F5F;"
+                                "border-top-left-radius:15px;border-bottom-left-radius:15px;}"
+                                "QPushButton:pressed{background-color:rgb(222, 222, 222);}"
+                                "QPushButton:!enabled{background-color:rgb(200, 200, 200);}");
 
     m_redoButton = new QPushButton(">");
     m_redoButton->setParent(this);
-    m_redoButton->setEnabled(false);
-    m_redoButton->move(gridSize * 10.1 + startX, gridSize * 9.5 + startY);
-    m_redoButton->setFixedSize(gridSize * 0.4, gridSize);
-    connect(m_redoButton, &QPushButton::clicked,  [&](){redo();});
+    m_redoButton->move(margin + gridSize * 10, margin + gridSize * 9 + halfSize);
+    m_redoButton->setFixedSize(halfSize, gridSize);
+    m_redoButton->setStyleSheet("QWidget{background-color:#FFFFFF;color:#5F5F5F;"
+                                "border-top-right-radius:15px;border-bottom-right-radius:15px;}"
+                                "QPushButton:hover{background-color:rgb(236, 236, 236);}"
+                                "QPushButton:pressed{background-color:rgb(222, 222, 222);}"
+                                "QPushButton:!enabled{background-color:rgb(200, 200, 200);}");
+
+    connect(loadButton, &QPushButton::clicked, [&](){loadRandomPuzzle();});
+    connect(clearButton, &QPushButton::clicked,  [&](){clearAll();});
+    connect(solveButton, &QPushButton::clicked, [&](){solve();});
+    connect(m_undoButton, &QPushButton::clicked,  [&](){ undo(); });
+    connect(m_redoButton, &QPushButton::clicked,  [&](){ redo(); });
 
     m_panel = new SelectPanel(75);
     m_panel->setParent(this);
@@ -131,16 +139,16 @@ MainWindow::MainWindow(QWidget *parent) :
     for (int i = 0; i < 9; i++)
     {
        Counter *counter = new Counter(i + 1, gridSize, this);
-       counter->move(startX + gridSize * 9.5, startY + space + i * (space + gridSize));
+       counter->move(margin + gridSize * 9 + halfSize, margin + space + i * (space + gridSize));
        m_counters.push_back(counter);
        connect(counter, &Counter::hovered, [=]() {highlight(i + 1, true);});
        connect(counter, &Counter::leave, [=]() {highlight(i + 1, false);});
     }
 
-    int minHeight = loadButton->geometry().y() + loadButton->geometry().height() + startY;
-    int minWidth = m_counters[0]->geometry().x() + m_counters[0]->geometry().width() + startX;
-    this->setMinimumSize(minWidth, minHeight);
-    Qt::WindowFlags flags = 0;
+    int minSize = gridSize * 10 + halfSize + 2 * margin;
+    this->setMinimumSize(minSize, minSize);
+
+    Qt::WindowFlags flags = nullptr;
     flags |= Qt::WindowMinimizeButtonHint;
     this->setWindowFlags(flags); // 设置禁止最大化
 
@@ -240,7 +248,7 @@ void MainWindow::changeGrid(int r, int c)
         return;
     }
 
-    m_panel->move(gridSize * c + startX + c / 3 * spacing, r * gridSize + startY + r / 3 * spacing);
+    m_panel->move(margin + gridSize * c + c / 3 * spacing, margin + r * gridSize + r / 3 * spacing);
     m_panel->exec();
 
     // selected为0表示没做操作就退出了

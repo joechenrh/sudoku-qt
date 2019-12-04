@@ -34,7 +34,7 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
     this->setFixedSize(size, size);
 
     QString gridStyle = QString("background-color:%1;border:1px solid #C9C9C9;");
-    if ((row == 0 || row == 8) && (col == 0 && col == 8))
+    if ((row == 0 || row == 8) && (col == 0 || col == 8))
     {
         QString borderStyle = "border-%1-%2-radius:15px;";
         gridStyle += borderStyle.arg(row == 0 ? "top" : "bottom")

@@ -4,7 +4,7 @@ Sudoku game with solver based on Qt
 
 The interface refers to steam game [sudoku universe]()
 
-![界面](https://github.com/joechenrh/sudoku-qt/blob/master/images/screenshot.png)
+![界面](https://github.com/joechenrh/sudoku-qt/blob/master/images/sudoku.gif)
 
 ## Features:
 

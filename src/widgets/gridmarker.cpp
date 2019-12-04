@@ -7,7 +7,6 @@
 #define MARKER_COLOR "#FB78A5"
 #define MARKER_SHADOW_COLOR "#E6CED6"
 
-
 GridMarker::GridMarker(int size, QWidget *parent)
     : QLabel(parent), m_size(size), m_indent(2)
 {

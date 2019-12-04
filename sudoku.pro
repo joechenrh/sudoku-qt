@@ -47,3 +47,5 @@ HEADERS += \
 
 FORMS += \
         ui\mainwindow.ui
+
+CONFIG += C++11

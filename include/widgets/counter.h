@@ -22,7 +22,7 @@ class Counter : public QWidget
     Q_OBJECT
 
 public:
-    Counter(int num, int size, QWidget *parent = NULL);
+    Counter(int num, int size, QWidget *parent = nullptr);
 
     /**
      * @brief Set remaining count to value and update stylesheet.
@@ -40,9 +40,9 @@ public:
     void plus(int value = 1);                 // 添加剩余数量
 
 protected:
-    void enterEvent(QEvent *e);               // 鼠标移入时的事件
+    void enterEvent(QEvent *e = nullptr);               // 鼠标移入时的事件
 
-    void leaveEvent(QEvent *e);               // 鼠标移出时的事件
+    void leaveEvent(QEvent *e = nullptr);               // 鼠标移出时的事件
 
     /**
      * @brief Set opacity of numLabel to 1 or 0, see m_opacityEffect
@@ -79,9 +79,15 @@ private:
 
     /**
      * @brief Effect which controls the opacity of numLabel.
-     * @details if count is zero, set opacity of numLabel to zero too.
+     * @details if count is zero, set opacity of numLabel to zero.
      */
-    QGraphicsOpacityEffect *m_opacityEffect;
+    QGraphicsOpacityEffect *m_numOpacity;
+
+    /**
+     * @brief Effect which controls the opacity of cntLabel.
+     * @details if count is zero, set opacity of numLabel to 0.5.
+     */
+    QGraphicsOpacityEffect *m_cntOpacity;
 };
 
 #endif // CIRCLEWIDGET_H

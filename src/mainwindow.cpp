@@ -184,7 +184,7 @@ void MainWindow::changeNumber(int r, int c, int previous, int selected)
     m_grids[r][c]->setValue(selected);
     m_grids[r][c]->clearConflict();
 
-    // Conflict detection
+    // 冲突检测，将和旧值相同的格子冲突数都减去1
     if (previous > 0)
     {
         m_counters[previous - 1]->plus();
@@ -197,6 +197,7 @@ void MainWindow::changeNumber(int r, int c, int previous, int selected)
         }
     }
 
+    // 如果新的值不为0，将和新值相同的格子冲突数加1，再计算本身的冲突数
     if (selected > 0)
     {
         int num = 0;
@@ -221,20 +222,6 @@ void MainWindow::clearGrid(int r, int c)
     {
         return;
     }
-
-    /*
-    for (auto pair : m_controlRanges[r][c])
-    {
-        if (m_grids[pair.first][pair.second]->value() == previous)
-        {
-            m_grids[pair.first][pair.second]->removeConflict(1);
-        }
-    }
-
-    m_counters[m_grids[r][c]->value() - 1]->plus();  // 计数加1
-    m_grids[r][c]->setValue(0);
-    m_grids[r][c]->clearConflict();  // 清空冲突数
-    */
 
     changeNumber(r, c, previous, 0);
 

@@ -24,10 +24,19 @@ class Counter : public QWidget
 public:
     Counter(int num, int size, QWidget *parent = NULL);
 
+    /**
+     * @brief Set remaining count to value and update stylesheet.
+     */
     void setCount(int value);                 // 设置剩余数量
 
+    /**
+     * @brief Subtract remaining count by value and update stylesheet.
+     */
     void minus(int value = 1);                // 减少剩余数量
 
+    /**
+     * @brief Add remaining count by value and update stylesheet.
+     */
     void plus(int value = 1);                 // 添加剩余数量
 
 protected:
@@ -35,7 +44,10 @@ protected:
 
     void leaveEvent(QEvent *e);               // 鼠标移出时的事件
 
-    void updateOpacity();                     // 更新透明度
+    /**
+     * @brief Set opacity of numLabel to 1 or 0, see m_opacityEffect
+     */
+    void updateOpacity();
 
 signals:
     /**

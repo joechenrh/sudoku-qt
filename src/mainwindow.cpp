@@ -86,8 +86,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
             connect(grid, &GridWidget::hovered,      [=](){ smartAssistOn(r, c); });
             connect(grid, &GridWidget::leave,        [=](){ smartAssistOff(r, c); });
-            connect(grid, &GridWidget::clicked,      [=](){ changeGrid(r, c); });
-            connect(grid, &GridWidget::rightClicked, [=](){ clearGrid(r, c); });
+            // connect(grid, &GridWidget::clicked,      [=](){ changeGrid(r, c); });
+            // connect(grid, &GridWidget::rightClicked, [=](){ clearGrid(r, c); });
         }
     }
 
@@ -131,7 +131,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_undoButton, &QPushButton::clicked,  [&](){ undo(); });
     connect(m_redoButton, &QPushButton::clicked,  [&](){ redo(); });
 
-    m_panel = new SelectPanel(75);
+    m_panel = SelectPanel::instance(gridSize);
     m_panel->setParent(this);
     m_panel->close();
 
@@ -351,6 +351,8 @@ void MainWindow::loadRandomPuzzle()
     }
 
     m_ops.clear();
+    m_undoButton->setEnabled(false);
+    m_redoButton->setEnabled(false);
 }
 
 // 没有结果时的处理

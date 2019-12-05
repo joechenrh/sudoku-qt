@@ -82,6 +82,8 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
 
     connect(m_button, SIGNAL(clicked()), this, SLOT(childrenClicked()));
     connect(m_button, SIGNAL(rightClicked()), this, SLOT(childrenRightClicked()));
+
+    m_panel = SelectPanel::instance(size);
 }
 
 void GridWidget::setEnabled(bool flag)
@@ -111,42 +113,6 @@ int GridWidget::value() const
     return m_value;
 }
 
-void GridWidget::enterEvent(QEvent *e )
-{
-    if (!m_enabled)
-    {
-        return;
-    }
-
-    m_foreground->hide();
-    m_marker->reveal();
-
-    emit hovered();
-
-    QWidget::enterEvent( e );
-
-    m_fontColor = FONT_COLOR_HOVERED;
-    m_button->setStyleSheet(m_fstyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
-
-}
-
-void GridWidget::leaveEvent(QEvent *e)
-{
-    if (!m_enabled)
-    {
-        return;
-    }
-
-    m_foreground->reveal();
-    m_marker->hide();
-
-    emit leave();
-
-    QWidget::enterEvent( e );
-
-    m_fontColor = FONT_COLOR_NORMAL;
-    m_button->setStyleSheet(m_fstyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
-}
 
 void GridWidget::hideButton()
 {
@@ -161,6 +127,14 @@ void GridWidget::revealButton()
 void GridWidget::childrenClicked()
 {
     emit clicked();
+    if (m_panel->isOpened())
+    {
+        m_panel->close();
+        return;
+    }
+    m_panel->setBase(this);
+    m_panel->move(geometry().x(), geometry().y());
+    m_panel->exec();
 }
 
 void GridWidget::childrenRightClicked()
@@ -202,5 +176,60 @@ void GridWidget::clearConflict()
 {
     m_numConflict = 1;
     m_borderRadius = BORDER_RADIUS_UNABLED;
+    m_button->setStyleSheet(m_fstyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+}
+
+
+bool GridWidget::event(QEvent *e)
+{
+  switch (e->type())
+  {
+  case QEvent::KeyPress:
+      keyPressEvent(static_cast<QKeyEvent*>(e));
+      return true;
+  case QEvent::Enter:
+      enterEvent(static_cast<QEnterEvent*>(e));
+      return true;
+  case QEvent::Leave:
+      leaveEvent(e);
+      return true;
+  }
+  return QObject::event(e);
+}
+
+void GridWidget::enterEvent(QEvent *e)
+{
+    if (!m_enabled)
+    {
+        return;
+    }
+
+    m_foreground->hide();
+    m_marker->reveal();
+
+    emit hovered();
+
+    QWidget::enterEvent(e);
+
+    m_fontColor = FONT_COLOR_HOVERED;
+    m_button->setStyleSheet(m_fstyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+
+}
+
+void GridWidget::leaveEvent(QEvent *e)
+{
+    if (!m_enabled)
+    {
+        return;
+    }
+
+    m_foreground->reveal();
+    m_marker->hide();
+
+    emit leave();
+
+    QWidget::enterEvent( e );
+
+    m_fontColor = FONT_COLOR_NORMAL;
     m_button->setStyleSheet(m_fstyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
 }

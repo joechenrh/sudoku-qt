@@ -1,11 +1,19 @@
 ﻿#include "selectpanel.h"
 
+#include <QDebug>
+#include <QPainter>
+#include <QApplication>
 #include <QPropertyAnimation>
+#include <QGraphicsOpacityEffect>
+
+SelectPanel* SelectPanel::m_instance = 0;
+QMutex SelectPanel::m_mutex;
 
 SelectPanel::SelectPanel(int size, QWidget *parent)
-    : QDialog(parent)
+    : QDialog(parent), opened(false)
 {
     m_buttons.resize(9);
+    m_selected.resize(9);
 
     this->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
     this->setFixedSize(size, size);
@@ -33,14 +41,49 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
 
             connect(button, &HoverButton::hovered, [=](){button->setFont(hoverFont); button->setStyleSheet(enterStylesheet);});
             connect(button, &HoverButton::leaved,   [=](){button->setFont(normalFont); button->setStyleSheet(leaveStylesheet);});
-            connect(button, &HoverButton::clicked, [=](){selected = i * 3 + j + 1; this->close();});
-            connect(button, &HoverButton::rightClicked, [=](){selected = 0; this->close();});
+            connect(button, &HoverButton::clicked, [=](){emit finish(i * 3 + j + 1); this->close();});
+            connect(button, &HoverButton::rightClicked, [=](){m_selected[i * 3 + j] = 1;});
         }
     }
+
+    int start = size * 0.2;
+    m_dummylabel = new QLabel(this);
+    m_dummylabel->setGeometry(start, start, size - 2 * start, size - 2 * start);
+
+    QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect;
+    opacityEffect->setOpacity(0.0);
+    m_dummylabel->setGraphicsEffect(opacityEffect);
+
+    QLabel *t = new QLabel(this);
+    t->setText("11");
+    QPainter painter(t);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.fillRect(QRect(0, 0, 75, 75), QBrush(Qt::black, Qt::SolidPattern));
+    painter.setCompositionMode(QPainter::CompositionMode_SourceOut);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QBrush(Qt::transparent, Qt::SolidPattern));
+    painter.drawEllipse(0, 0, 75, 75);
+    t->show();
+
+}
+
+SelectPanel* SelectPanel::instance(int size, QWidget* parent)
+{
+    if(!m_instance)
+    {
+        QMutexLocker lock(&m_mutex);
+        if(!m_instance)
+        {
+            SelectPanel *pInstance = new SelectPanel(size, parent);  // 修改处
+            m_instance = pInstance;                                  // 修改处
+        }
+    }
+    return m_instance;
 }
 
 int SelectPanel::exec()
 {
+    opened = true;
     /*
     this->setWindowOpacity(0.0);
     QPropertyAnimation* anim = new QPropertyAnimation(this, "windowOpacity");
@@ -55,6 +98,8 @@ int SelectPanel::exec()
 
 bool SelectPanel::close()
 {
+    opened = false;
+    m_base = nullptr;
     /*
     this->setWindowOpacity(1.0);
     QPropertyAnimation* anim = new QPropertyAnimation(this, "windowOpacity");
@@ -71,7 +116,28 @@ bool SelectPanel::close()
     return QDialog::close();
 }
 
+bool SelectPanel::isOpened() const
+{
+    return opened;
+}
+
 int SelectPanel::number() const
 {
     return selected;
+}
+
+
+void SelectPanel::enterEvent(QEvent *e)
+{
+    QApplication::sendEvent(m_base, e);
+}
+
+void SelectPanel::leaveEvent(QEvent *e)
+{
+    QApplication::sendEvent(m_base, e);
+}
+
+void SelectPanel::setBase(QWidget *widget)
+{
+    m_base = widget;
 }

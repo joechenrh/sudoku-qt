@@ -5,8 +5,9 @@
 #include <QWidget>
 #include <QString>
 
-#include <hoverbutton.h>
-#include <gridmarker.h>
+#include "hoverbutton.h"
+#include "gridmarker.h"
+#include "selectpanel.h"
 
 class GridWidget : public QWidget
 {
@@ -38,6 +39,8 @@ protected:
 
     void leaveEvent(QEvent *e);
 
+    bool event(QEvent *e);
+
 signals:
     void hovered();
 
@@ -53,6 +56,8 @@ private slots:
     void childrenRightClicked();
 
 private:
+    SelectPanel *m_panel;
+
     HoverButton *m_button; // 按钮
 
     GridMarker *m_marker;  // 鼠标覆盖时的标记

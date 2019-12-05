@@ -57,9 +57,9 @@ private:
 
     SelectPanel *m_panel;                                     // 修改数值的面板
 
-    QStack<Op> m_ops;                                         // 操作栈，用于记录操作
+    QStack<Op> m_undoOps;                                         // 操作栈，用于记录操作
 
-    QStack<Op> m_ops2;                                        // 操作栈，用于记录回退的操作
+    QStack<Op> m_redoOps;                                        // 操作栈，用于记录回退的操作
 
     QPushButton *m_undoButton;                                // 回退按钮
 

@@ -39,21 +39,17 @@ protected:
 
     void leaveEvent(QEvent *e);
 
-    bool event(QEvent *e);
-
 signals:
     void hovered();
 
     void leave();
 
-    void clicked();
-
     void rightClicked();
 
 private slots:
-    void childrenClicked();
+    void buttonClicked();
 
-    void childrenRightClicked();
+    void buttonRightClicked();
 
 private:
     SelectPanel *m_panel;

@@ -80,8 +80,8 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
     m_button->move(bias, bias);
     m_button->setStyleSheet(m_fstyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
 
-    connect(m_button, SIGNAL(clicked()), this, SLOT(childrenClicked()));
-    connect(m_button, SIGNAL(rightClicked()), this, SLOT(childrenRightClicked()));
+    connect(m_button, SIGNAL(clicked()), this, SLOT(buttonClicked()));
+    connect(m_button, SIGNAL(rightClicked()), this, SLOT(buttonRightClicked()));
 
     m_panel = SelectPanel::instance(size);
 }
@@ -96,7 +96,6 @@ void GridWidget::setEnabled(bool flag)
     m_button->setEnabled(flag);
 }
 
-//
 bool GridWidget::isEnabled() const
 {
     return m_enabled;
@@ -124,9 +123,8 @@ void GridWidget::revealButton()
     m_foreground->reveal();
 }
 
-void GridWidget::childrenClicked()
+void GridWidget::buttonClicked()
 {
-    emit clicked();
     if (m_panel->isOpened())
     {
         m_panel->close();
@@ -137,10 +135,19 @@ void GridWidget::childrenClicked()
     m_panel->exec();
 }
 
-void GridWidget::childrenRightClicked()
+void GridWidget::buttonRightClicked()
 {
+    if (m_panel->isOpened())
+    {
+        m_panel->close();
+        return;
+    }
+
+    // 发射信号给主界面，清除这个格子的内容
+    // 因为涉及到其他的控件，所以不在内部处理
     emit rightClicked();
 }
+
 
 // add conflict number by num
 void GridWidget::addConflict(int num)
@@ -180,23 +187,6 @@ void GridWidget::clearConflict()
 }
 
 
-bool GridWidget::event(QEvent *e)
-{
-  switch (e->type())
-  {
-  case QEvent::KeyPress:
-      keyPressEvent(static_cast<QKeyEvent*>(e));
-      return true;
-  case QEvent::Enter:
-      enterEvent(static_cast<QEnterEvent*>(e));
-      return true;
-  case QEvent::Leave:
-      leaveEvent(e);
-      return true;
-  }
-  return QObject::event(e);
-}
-
 void GridWidget::enterEvent(QEvent *e)
 {
     if (!m_enabled)
@@ -207,6 +197,7 @@ void GridWidget::enterEvent(QEvent *e)
     m_foreground->hide();
     m_marker->reveal();
 
+    // 传递hovered信号，修改其他控件的透明的
     emit hovered();
 
     QWidget::enterEvent(e);
@@ -226,6 +217,7 @@ void GridWidget::leaveEvent(QEvent *e)
     m_foreground->reveal();
     m_marker->hide();
 
+    // 传递leaved信号，修改其他控件的透明的
     emit leave();
 
     QWidget::enterEvent( e );

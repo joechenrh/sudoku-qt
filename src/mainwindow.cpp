@@ -86,8 +86,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
             connect(grid, &GridWidget::hovered,      [=](){ smartAssistOn(r, c); });
             connect(grid, &GridWidget::leave,        [=](){ smartAssistOff(r, c); });
-            // connect(grid, &GridWidget::clicked,      [=](){ changeGrid(r, c); });
-            // connect(grid, &GridWidget::rightClicked, [=](){ clearGrid(r, c); });
+            connect(grid, &GridWidget::rightClicked, [=](){ clearGrid(r, c); });
         }
     }
 
@@ -125,15 +124,17 @@ MainWindow::MainWindow(QWidget *parent) :
                                 "QPushButton:pressed{background-color:rgb(222, 222, 222);}"
                                 "QPushButton:!enabled{background-color:rgb(200, 200, 200);}");
 
-    connect(loadButton, &QPushButton::clicked, [&](){loadRandomPuzzle();});
-    connect(clearButton, &QPushButton::clicked,  [&](){clearAll();});
-    connect(solveButton, &QPushButton::clicked, [&](){solve();});
-    connect(m_undoButton, &QPushButton::clicked,  [&](){ undo(); });
-    connect(m_redoButton, &QPushButton::clicked,  [&](){ redo(); });
-
     m_panel = SelectPanel::instance(gridSize);
     m_panel->setParent(this);
     m_panel->close();
+
+
+    connect(loadButton,   &QPushButton::clicked,  [&](){ loadRandomPuzzle(); });
+    connect(clearButton,  &QPushButton::clicked,  [&](){ clearAll(); });
+    connect(solveButton,  &QPushButton::clicked,  [&](){ solve(); });
+    connect(m_undoButton, &QPushButton::clicked,  [&](){ undo(); });
+    connect(m_redoButton, &QPushButton::clicked,  [&](){ redo(); });
+    connect(m_panel,      &SelectPanel::finish,   [&](int value) {});
 
     int space = std::min(spacing / 10, 2);
     for (int i = 0; i < 9; i++)
@@ -233,13 +234,14 @@ void MainWindow::clearGrid(int r, int c)
 
     changeNumber(r, c, previous, 0);
 
-    m_ops.append(Op(r, c, previous, 0));
-    m_ops2.clear();
+    m_undoOps.append(Op(r, c, previous, 0));
     m_undoButton->setEnabled(true);
+
+    m_redoOps.clear();
     m_redoButton->setEnabled(false);
 }
 
-// 冲突检测 | 显示qdialog时有bug
+// 冲突检测 | 废除
 void MainWindow::changeGrid(int r, int c)
 {
     if (m_panel->isVisible())
@@ -261,8 +263,8 @@ void MainWindow::changeGrid(int r, int c)
     int previous = m_grids[r][c]->value();
     changeNumber(r, c, previous, selected);
 
-    m_ops.append(Op(r, c, previous, selected));
-    m_ops2.clear();
+    m_undoOps.append(Op(r, c, previous, selected));
+    m_redoOps.clear();
     m_undoButton->setEnabled(true);
     m_redoButton->setEnabled(false);
 }
@@ -289,8 +291,8 @@ void MainWindow::clearAll()
         m_counters[i - 1]->plus(counts[i]);
     }
 
-    m_ops.clear();
-    m_ops2.clear();
+    m_undoOps.clear();
+    m_redoOps.clear();
     m_undoButton->setEnabled(false);
     m_redoButton->setEnabled(false);
 }
@@ -322,7 +324,7 @@ void MainWindow::smartAssistOn(int r, int c)
 // 随机生成谜题
 void MainWindow::loadRandomPuzzle()
 {
-    QFile file("D:/test.txt");
+    QFile file("E:/test.txt");
     if(!file.open(QFile::ReadOnly))
     {
         return;
@@ -350,7 +352,7 @@ void MainWindow::loadRandomPuzzle()
         m_counters[i - 1]->setCount(9 - counts[i]);
     }
 
-    m_ops.clear();
+    m_undoOps.clear();
     m_undoButton->setEnabled(false);
     m_redoButton->setEnabled(false);
 }
@@ -385,30 +387,27 @@ void MainWindow::solve()
 // 撤销回退
 void MainWindow::redo()
 {
-    Op op = m_ops2.pop();
+    Op op = m_redoOps.pop();
+    m_undoOps.push(op);
     changeNumber(op.row, op.col, op.before, op.after);
-    m_ops.push(op);
 
     m_undoButton->setEnabled(true);
-    if (m_ops2.size() == 0)
+    if (m_redoOps.size() == 0)
     {
         m_redoButton->setEnabled(false);
-        // set redo button unabled
     }
 }
 
 // 回退
 void MainWindow::undo()
 {
-    Op op = m_ops.pop();
-    qDebug() << m_ops.size();
+    Op op = m_undoOps.pop();
+    m_redoOps.push(op);
     changeNumber(op.row, op.col, op.after, op.before);
-    m_ops2.push(op);
 
     m_redoButton->setEnabled(true);
-    if (m_ops.size() == 0)
+    if (m_undoOps.size() == 0)
     {
         m_undoButton->setEnabled(false);
-        // set undo button unabled
     }
 }

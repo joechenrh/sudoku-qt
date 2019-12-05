@@ -39,32 +39,12 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
             button->setText(QString::number(i * 3 + j + 1));
             m_buttons[i * 3 + j] = button;
 
-            connect(button, &HoverButton::hovered, [=](){button->setFont(hoverFont); button->setStyleSheet(enterStylesheet);});
-            connect(button, &HoverButton::leaved,   [=](){button->setFont(normalFont); button->setStyleSheet(leaveStylesheet);});
-            connect(button, &HoverButton::clicked, [=](){emit finish(i * 3 + j + 1); this->close();});
+            connect(button, &HoverButton::hovered,      [=](){button->setFont(hoverFont); button->setStyleSheet(enterStylesheet);});
+            connect(button, &HoverButton::leaved,       [=](){button->setFont(normalFont); button->setStyleSheet(leaveStylesheet);});
+            connect(button, &HoverButton::clicked,      [=](){emit finish(i * 3 + j + 1); this->close();});
             connect(button, &HoverButton::rightClicked, [=](){m_selected[i * 3 + j] = 1;});
         }
     }
-
-    int start = size * 0.2;
-    m_dummylabel = new QLabel(this);
-    m_dummylabel->setGeometry(start, start, size - 2 * start, size - 2 * start);
-
-    QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect;
-    opacityEffect->setOpacity(0.0);
-    m_dummylabel->setGraphicsEffect(opacityEffect);
-
-    QLabel *t = new QLabel(this);
-    t->setText("11");
-    QPainter painter(t);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.fillRect(QRect(0, 0, 75, 75), QBrush(Qt::black, Qt::SolidPattern));
-    painter.setCompositionMode(QPainter::CompositionMode_SourceOut);
-    painter.setPen(Qt::NoPen);
-    painter.setBrush(QBrush(Qt::transparent, Qt::SolidPattern));
-    painter.drawEllipse(0, 0, 75, 75);
-    t->show();
-
 }
 
 SelectPanel* SelectPanel::instance(int size, QWidget* parent)
@@ -84,36 +64,40 @@ SelectPanel* SelectPanel::instance(int size, QWidget* parent)
 int SelectPanel::exec()
 {
     opened = true;
-    /*
+
     this->setWindowOpacity(0.0);
     QPropertyAnimation* anim = new QPropertyAnimation(this, "windowOpacity");
-    anim->setDuration(300);
+    anim->setDuration(3000);
     anim->setEasingCurve(QEasingCurve::OutQuad);
-    anim->setStartValue(0.5);
+    anim->setStartValue(0.0);
     anim->setEndValue(1.0);
     anim->start(QAbstractAnimation::DeleteWhenStopped);
-    */
+
     return QDialog::exec();
 }
 
 bool SelectPanel::close()
 {
-    opened = false;
-    m_base = nullptr;
     /*
     this->setWindowOpacity(1.0);
     QPropertyAnimation* anim = new QPropertyAnimation(this, "windowOpacity");
     anim->setDuration(100);
     anim->setEasingCurve(QEasingCurve::OutBack);
     anim->setStartValue(1.0);
-    anim->setEndValue(0.5);
+    anim->setEndValue(0.0);
     anim->start(QAbstractAnimation::DeleteWhenStopped);
 
     bool res;
     connect(anim, &QPropertyAnimation::destroyed, [&](){res = QDialog::close();});
-    return res
+    return res;
     */
-    return QDialog::close();
+    opened = false;
+    QDialog::close();
+
+    //this->setParent(nullptr);
+    //m_base = nullptr;  // 加这句就会报错，暂时不清楚为什么
+    return true;
+
 }
 
 bool SelectPanel::isOpened() const

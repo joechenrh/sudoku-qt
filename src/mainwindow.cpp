@@ -13,19 +13,6 @@
 #define halfSize gridSize / 2  // 半个格子的大小，即按钮的高度
 #define spacing 10             // 九宫格之间的间隔
 
-/**
- * @brief 操作数
- */
-struct Op
-{
-    int row;    // 操作的行数
-    int col;    // 操作的列数
-    int before; // 更改前的值
-    int after;  // 更改后的值
-    Op(int _row = 0, int _col = 0, int _before = 0, int _after = 0)
-        : row(_row), col(_col), before(_before), after(_after) {}
-};
-
 QPushButton* createButton(QString text)
 {
     QFont buttonFont("华文新魏", 15);
@@ -47,14 +34,15 @@ QPushButton* createButton(QString text)
 }
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    QMainWindow(parent), ui(new Ui::MainWindow)
 {
-    // 背景色
+    // 窗口设置
     QColor color = QColor("#DDE2E5");
     QPalette p = this->palette();
     p.setColor(QPalette::Window,color);
     this->setPalette(p);
+
+    /*********************************************/
 
     m_grids.resize(9);
     m_controlRanges.resize(9);
@@ -85,8 +73,9 @@ MainWindow::MainWindow(QWidget *parent) :
             m_grids[r][c] = grid;
 
             connect(grid, &GridWidget::hovered,      [=](){ smartAssistOn(r, c); });
-            connect(grid, &GridWidget::leave,        [=](){ smartAssistOff(r, c); });
-            connect(grid, &GridWidget::rightClicked, [=](){ clearGrid(r, c); });
+            connect(grid, &GridWidget::leaved,       [=](){ smartAssistOff(r, c); });
+            //connect(grid, &GridWidget::clicked,      [=](){ changeGrid(r, c); });
+            //connect(grid, &GridWidget::rightClicked, [=](){ clearGrid(r, c); });
         }
     }
 
@@ -128,13 +117,13 @@ MainWindow::MainWindow(QWidget *parent) :
     m_panel->setParent(this);
     m_panel->close();
 
-
-    connect(loadButton,   &QPushButton::clicked,  [&](){ loadRandomPuzzle(); });
-    connect(clearButton,  &QPushButton::clicked,  [&](){ clearAll(); });
-    connect(solveButton,  &QPushButton::clicked,  [&](){ solve(); });
-    connect(m_undoButton, &QPushButton::clicked,  [&](){ undo(); });
-    connect(m_redoButton, &QPushButton::clicked,  [&](){ redo(); });
-    connect(m_panel,      &SelectPanel::finish,   [&](int value) {});
+    connect(loadButton,   SIGNAL( clicked() ), this, SLOT( loadRandomPuzzle()) );
+    connect(clearButton,  SIGNAL( clicked() ), this, SLOT( clearAll()) );
+    connect(solveButton,  SIGNAL( clicked() ), this, SLOT( solve()) );
+    connect(m_undoButton, SIGNAL( clicked() ), this, SLOT( undo()) );
+    connect(m_redoButton, SIGNAL( clicked() ), this, SLOT( redo()) );
+    //connect(m_panel,      &SelectPanel::finish,   [&](int value) { qDebug() << value; });
+    connect(m_panel, SIGNAL( finish(QList<int>) ), this, SLOT( receiveResult(QList<int>)) );
 
     int space = std::min(spacing / 10, 2);
     for (int i = 0; i < 9; i++)
@@ -146,6 +135,8 @@ MainWindow::MainWindow(QWidget *parent) :
        connect(counter, &Counter::leave, [=]() {highlight(i + 1, false);});
     }
 
+    loadRandomPuzzle();
+
     int minSize = gridSize * 10 + halfSize + 2 * margin;
     this->setMinimumSize(minSize, minSize);
 
@@ -153,7 +144,6 @@ MainWindow::MainWindow(QWidget *parent) :
     flags |= Qt::WindowMinimizeButtonHint;
     this->setWindowFlags(flags); // 设置禁止最大化
 
-    loadRandomPuzzle();
 }
 
 MainWindow::~MainWindow()
@@ -163,8 +153,16 @@ MainWindow::~MainWindow()
 }
 
 
+void MainWindow::receiveResult(QList<int> result)
+{
+    int r = result.at(1);
+    int c = result.at(2);
+    int selected = result.at(0);
+    qDebug() << result.at(0) << result.at(1) << result.at(2);
+    changeNumber(r, c, m_grids[r][c]->value(), selected);
+}
 
-// 统计每个数的位置，就不用遍历了 | 废除
+
 void MainWindow::highlight(int num, int active)
 {
     for (int r = 0; r < 9; r++)
@@ -190,6 +188,11 @@ void MainWindow::highlight(int num, int active)
 // 为了实现undo/redo剥离出修改数值的代码
 void MainWindow::changeNumber(int r, int c, int previous, int selected)
 {
+    if (previous == selected)
+    {
+        return;
+    }
+
     m_grids[r][c]->setValue(selected);
     m_grids[r][c]->clearConflict();
 
@@ -244,17 +247,18 @@ void MainWindow::clearGrid(int r, int c)
 // 冲突检测 | 废除
 void MainWindow::changeGrid(int r, int c)
 {
-    if (m_panel->isVisible())
+    if (m_panel->isOpened())
     {
         m_panel->close();
         return;
     }
 
-    m_panel->move(margin + gridSize * c + c / 3 * spacing, margin + r * gridSize + r / 3 * spacing);
+    //m_panel->move(margin + gridSize * c + c / 3 * spacing, margin + r * gridSize + r / 3 * spacing);
     m_panel->exec();
+    return;
 
     // selected为0表示没做操作就退出了
-    int selected = m_panel->number();
+    int selected = 0;
     if (selected == 0)
     {
         return;

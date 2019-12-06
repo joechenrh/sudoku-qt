@@ -7,15 +7,12 @@
 #ifndef CIRCLEWIDGET_H
 #define CIRCLEWIDGET_H
 
-#include <QWidget>
 #include <QLabel>
-#include <QString>
 #include <QGraphicsOpacityEffect>
 
+
 /**
- * @brief Class used to control the number of digits.
- * @details This widget consists of two components, cntLabel which indicate which digit is chosen
- * and numLabel which show remaining count of selected digit
+ * @brief The Counter class
  */
 class Counter : public QWidget
 {
@@ -25,67 +22,76 @@ public:
     Counter(int num, int size, QWidget *parent = nullptr);
 
     /**
-     * @brief Set remaining count to value and update stylesheet.
+     * @brief setCount 直接调整剩余数量，主要会在重置棋盘时用到
+     * @param value 剩余数量
      */
-    void setCount(int value);                 // 设置剩余数量
+    void setCount(int value);
 
     /**
-     * @brief Subtract remaining count by value and update stylesheet.
+     * @brief minus 减少剩余数量
+     * @param value 减少的值
      */
-    void minus(int value = 1);                // 减少剩余数量
+    void minus(int value = 1);
 
     /**
-     * @brief Add remaining count by value and update stylesheet.
+     * @brief plus 增加剩余数量
+     * @param value 增加的值
      */
-    void plus(int value = 1);                 // 添加剩余数量
+    void plus(int value = 1);
 
 protected:
-    void enterEvent(QEvent *e = nullptr);               // 鼠标移入时的事件
-
-    void leaveEvent(QEvent *e = nullptr);               // 鼠标移出时的事件
+    /**
+     * @brief enterEvent 鼠标进入触发的事件
+     * @param e 触发的事件
+     */
+    void enterEvent(QEvent *e = nullptr);
 
     /**
-     * @brief Set opacity of numLabel to 1 or 0, see m_opacityEffect
+     * @brief leaveEvent 鼠标离开触发的事件
+     * @param e 触发的事件
      */
-    void updateOpacity();
+    void leaveEvent(QEvent *e = nullptr);
+
 
 signals:
     /**
-     * @brief Signal emitted whenever mouse enters this widget.
+     * @brief hovered 鼠标进入时触发的信号
      */
     void hovered();
 
     /**
-     * @brief Signal emitted whenever mouse leaves this widget.
+     * @brief leave 鼠标离开时触发的信号
      */
     void leave();
 
 private:
     /**
-     * @brief Remaining number of current digit.
+     * @brief updateOpacity 更新控件的透明度
+     */
+    void updateOpacity();
+
+    /**
+     * @brief m_count 剩余数量
      */
     int m_count;
 
     /**
-     * @brief Widget which visualize m_count.
+     * @brief m_cntLabel 显示当前监控数字剩余数量的qlabel
      */
     QLabel *m_cntLabel;
 
     /**
-     * @brief Control the stylesheet of cntLabel.
-     * @details Use arg to change background color and font color of cntLabel.
+     * @brief m_numLabel 显示当前监控数字的qlabel
+     */
+    QLabel *m_numLabel;
+
+    /**
+     * @brief m_cntStyle 控制cntLabel的stylesheet，
      */
     QString m_cntStyle;
 
     /**
-     * @brief Effect which controls the opacity of numLabel.
-     * @details if count is zero, set opacity of numLabel to zero.
-     */
-    QGraphicsOpacityEffect *m_numOpacity;
-
-    /**
-     * @brief Effect which controls the opacity of cntLabel.
-     * @details if count is zero, set opacity of numLabel to 0.5.
+     * @brief m_cntOpacity 控制cntLabel的透明度，当剩余数量小于等于0时，控件透明度会降低
      */
     QGraphicsOpacityEffect *m_cntOpacity;
 };

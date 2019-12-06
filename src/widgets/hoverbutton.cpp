@@ -38,11 +38,6 @@ void HoverButton::reveal()
     m_animation->start();
 }
 
-void HoverButton::setOpacity(double opacity)
-{
-    ((QGraphicsOpacityEffect*)(this->graphicsEffect()))->setOpacity(opacity);
-}
-
 void HoverButton::enterEvent(QEvent *e)
 {
     emit hovered();

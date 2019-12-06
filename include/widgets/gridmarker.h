@@ -1,32 +1,69 @@
-﻿#ifndef TESTWIDGET_H
+﻿/**
+ * @file gridmarker.h
+ * @brief Contains widget used to highlight mouse enter event.
+ * @author Joe chen <joechenrh@gmail.com>
+ */
+
+#ifndef TESTWIDGET_H
 #define TESTWIDGET_H
 
-#include <QWidget>
 #include <QLabel>
-
 #include <QPainter>
 #include <QPropertyAnimation>
 
-
+/**
+ * @brief The GridMarker class 鼠标进入九宫格时显示的圆形效果由这个控件绘制
+ * @details 通过变化geometry来达到放大缩小的效果,
+ */
 class GridMarker : public QLabel
 {
     Q_OBJECT
 public:
+    /**
+     * @brief GridMarker 构造函数
+     * @param size 控件的大小
+     * @param parent 父控件
+     */
     explicit GridMarker(int size, QWidget *parent = nullptr);
 
+    /**
+     * @brief 显示圆形
+     */
     void hide();
 
+    /**
+     * @brief 隐藏圆形
+     */
     void reveal();
 
 private:
-    QPropertyAnimation *m_scaleAnimation;
-
-    QPropertyAnimation *m_opacityAnimation;
-
+    /**
+     * @brief 控件的宽度和高度，控件为正方形
+     */
     int m_size;
 
-    int m_indent;  // 由于drawEllipse时边缘也有一个像素，所以画圆时需要向内缩小至少一个像素，m_indent就是控制缩进的距离
+    /**
+     * @brief 控制绘制圆形时的缩进
+     * @details 由于需要绘制一层阴影，因此实际圆形的半径需要比控件大小的一半小一点
+     */
+    int m_indent;
 
+    /**
+     * @brief 控制放大缩小的动画
+     */
+    QPropertyAnimation *m_scaleAnimation;
+
+    /**
+     * @brief 控制透明度的动画
+     */
+    QPropertyAnimation *m_opacityAnimation;
+
+protected:
+    /**
+     * @brief 重载paintEvent函数
+     * @details 实现在控件上绘制一个圆形和一层阴影
+     * @param event 传入的绘图事件
+     */
     void paintEvent(QPaintEvent *event);
 };
 

@@ -1,11 +1,9 @@
 ﻿#include "gridmarker.h"
 
-#include <QDebug>
-#include <QPainter>
 #include <QGraphicsOpacityEffect>
 
-#define MARKER_COLOR "#FB78A5"
-#define MARKER_SHADOW_COLOR "#E6CED6"
+#define MARKER_COLOR "#FB78A5"           // 标记本身的颜色
+#define MARKER_SHADOW_COLOR "#E6CED6"    // 标记阴影的颜色
 
 GridMarker::GridMarker(int size, QWidget *parent)
     : QLabel(parent), m_size(size), m_indent(2)
@@ -25,8 +23,8 @@ GridMarker::GridMarker(int size, QWidget *parent)
 
     // 透明度其实不是必须的
     // 但是控件在初始化时一定会绘制一次，而且控件大小就是layout大小
-    // 所以要么在paintevent里加个flag，第一次不绘制，要么就加个初始透明度为0
-    // 加透明度显示效果也很不错，就加上吧
+    // 所以要么在paintEvent里加个flag，第一次不绘制，要么就加个初始透明度为0
+    // 加透明度显示效果也很不错，就采用这个方案
     m_opacityAnimation = new QPropertyAnimation(opacityEffect, "opacity", this);
     m_opacityAnimation->setDuration(duration);
     m_opacityAnimation->setStartValue(0.0);
@@ -73,7 +71,7 @@ void GridMarker::reveal()
     m_scaleAnimation->start();
 
     m_opacityAnimation->setStartValue(m_opacityAnimation->currentValue());
-    m_opacityAnimation->setEndValue(0.999);
+    m_opacityAnimation->setEndValue(0.999);  // 这也许是一个小bug，如果设置过geometry，再设置透明度为1就会有问题
     m_opacityAnimation->start();
 }
 
@@ -88,11 +86,11 @@ void GridMarker::paintEvent(QPaintEvent *event)
     }
     else
     {
-        painter.setPen(QPen(QBrush(MARKER_SHADOW_COLOR), 1));
+        painter.setPen(Qt::NoPen);
         painter.setBrush(QBrush(QColor(MARKER_SHADOW_COLOR)));
         painter.drawEllipse(m_indent, m_indent + 2, width() - 2 * m_indent, width() - 2 * m_indent);
 
-        painter.setPen(QPen(QBrush(MARKER_COLOR), 1));
+        painter.setPen(Qt::NoPen);
         painter.setBrush(QBrush(QColor(MARKER_COLOR)));
         painter.drawEllipse(m_indent, m_indent, width() - 2 * m_indent, width() - 2 * m_indent);
 

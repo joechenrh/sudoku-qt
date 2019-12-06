@@ -1,4 +1,11 @@
-﻿#include <vector>
+﻿/**
+ * @file sudokusolver.h
+ * @brief Main class for generate and solve sudoku
+ * @author Joe chen <joechenrh@gmail.com>
+ */
+
+
+#include <vector>
 #include <iostream>
 
 enum resType {SOLVED, UNSOLVED, FAILED};

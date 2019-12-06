@@ -1,7 +1,5 @@
 ﻿#include "gridwidget.h"
 
-#include <QDebug>
-#include <QFont>
 #include <QStackedLayout>
 #include <QGraphicsOpacityEffect>
 #include <QGraphicsDropShadowEffect>
@@ -23,7 +21,7 @@
 
 
 GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
-    : QWidget(parent), m_enabled(true), m_value(0), m_numConflict(1)
+    : QWidget(parent), m_enabled(true), m_value(0), m_numConflict(1), m_row(row), m_col(col)
 {
     // 设置大小和阴影
     QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect(this);
@@ -63,10 +61,9 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
     layout->addWidget(m_background);
     layout->setStackingMode(QStackedLayout::StackAll);
 
-    // 最上层的button即承担了按钮的功能，也承担了显示圆环的功能
     int bias = size * 0.125;
-    m_fstyle = QString("border-radius:%1px;border:%2px solid %3;"
-                       "background-color:transparent;color:%4").arg(size / 2 - bias );
+    m_buttonStyle = QString("border-radius:%1px;border:%2px solid %3;"
+                            "background-color:transparent;color:%4").arg(size / 2 - bias );
 
     // 初始风格
     m_borderRadius = BORDER_RADIUS_UNABLED;
@@ -74,17 +71,17 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
     m_fontColor = FONT_COLOR_NORMAL;
 
     m_button = new HoverButton(this);
-    m_button->setText("");
     m_button->setFont(buttonFont);
     m_button->setFixedSize(size - 2 * bias, size - 2 * bias);
     m_button->move(bias, bias);
-    m_button->setStyleSheet(m_fstyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+    m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
 
-    connect(m_button, SIGNAL(clicked()), this, SLOT(buttonClicked()));
+    connect(m_button, SIGNAL(clicked()),      this, SLOT(buttonClicked()));
     connect(m_button, SIGNAL(rightClicked()), this, SLOT(buttonRightClicked()));
 
     m_panel = SelectPanel::instance(size);
 }
+
 
 void GridWidget::setEnabled(bool flag)
 {
@@ -92,7 +89,7 @@ void GridWidget::setEnabled(bool flag)
     m_fontColor = flag ? FONT_COLOR_NORMAL : FONT_COLOR_UNABLED;
     m_borderColor = flag ? BORDER_COLOR_ENABLED : BORDER_COLOR_UNABLED;
 
-    m_button->setStyleSheet(m_fstyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+    m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
     m_button->setEnabled(flag);
 }
 
@@ -130,7 +127,7 @@ void GridWidget::buttonClicked()
         m_panel->close();
         return;
     }
-    m_panel->setBase(this);
+    m_panel->setBase(this, m_row, m_col);
     m_panel->move(geometry().x(), geometry().y());
     m_panel->exec();
 }
@@ -143,13 +140,10 @@ void GridWidget::buttonRightClicked()
         return;
     }
 
-    // 发射信号给主界面，清除这个格子的内容
-    // 因为涉及到其他的控件，所以不在内部处理
     emit rightClicked();
 }
 
 
-// add conflict number by num
 void GridWidget::addConflict(int num)
 {
     if (num == 0)
@@ -157,12 +151,12 @@ void GridWidget::addConflict(int num)
         return;
     }
 
+    // 添加冲突数一定会将状态从无冲突转为有冲突
     m_numConflict += num;
-    m_borderRadius = BORDER_RADIUS_ENABLED;
-    m_button->setStyleSheet(m_fstyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+    m_borderRadius = BORDER_RADIUS_UNABLED;
+    m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
 }
 
-// subtract conflict number by num
 void GridWidget::removeConflict(int num)
 {
     if (num == 0)
@@ -170,20 +164,20 @@ void GridWidget::removeConflict(int num)
         return;
     }
 
+    // 减少冲突数可能会将状态从有冲突转为无冲突
     m_numConflict -= num;
     if (m_numConflict == 1)
     {
         m_borderRadius = BORDER_RADIUS_UNABLED;
-        m_button->setStyleSheet(m_fstyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+        m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
     }
 }
 
-// clean conflict number
 void GridWidget::clearConflict()
 {
     m_numConflict = 1;
     m_borderRadius = BORDER_RADIUS_UNABLED;
-    m_button->setStyleSheet(m_fstyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+    m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
 }
 
 
@@ -203,7 +197,7 @@ void GridWidget::enterEvent(QEvent *e)
     QWidget::enterEvent(e);
 
     m_fontColor = FONT_COLOR_HOVERED;
-    m_button->setStyleSheet(m_fstyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+    m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
 
 }
 
@@ -218,10 +212,10 @@ void GridWidget::leaveEvent(QEvent *e)
     m_marker->hide();
 
     // 传递leaved信号，修改其他控件的透明的
-    emit leave();
+    emit leaved();
 
-    QWidget::enterEvent( e );
+    QWidget::enterEvent(e);
 
     m_fontColor = FONT_COLOR_NORMAL;
-    m_button->setStyleSheet(m_fstyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+    m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
 }

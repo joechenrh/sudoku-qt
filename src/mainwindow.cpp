@@ -4,6 +4,7 @@
 #include <vector>
 #include <QDir>
 #include <QDebug>
+#include <QFontDatabase>
 #include <QGraphicsDropShadowEffect>
 
 #include "sudokusolver.h"
@@ -11,11 +12,14 @@
 #define margin 10              // 四周的边缘宽度
 #define gridSize 75            // 格子的大小
 #define halfSize gridSize / 2  // 半个格子的大小，即按钮的高度
-#define spacing 10             // 九宫格之间的间隔
+#define spacing 5             // 九宫格之间的间隔
 
 QPushButton* createButton(QString text)
 {
-    QFont buttonFont("华文新魏", 15);
+    int nIndex = QFontDatabase::addApplicationFont(":/sudoku/fonts/ARLRDBD.TTF");
+    QStringList strList(QFontDatabase::applicationFontFamilies(nIndex));
+
+    QFont buttonFont = QFont(strList.at(0));
     buttonFont.setPointSize(12);
     buttonFont.setBold(true);
 
@@ -43,6 +47,8 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setPalette(p);
 
     /*********************************************/
+
+
 
     m_grids.resize(9);
     m_controlRanges.resize(9);
@@ -75,7 +81,7 @@ MainWindow::MainWindow(QWidget *parent) :
             connect(grid, &GridWidget::hovered,      [=](){ smartAssistOn(r, c); });
             connect(grid, &GridWidget::leaved,       [=](){ smartAssistOff(r, c); });
             //connect(grid, &GridWidget::clicked,      [=](){ changeGrid(r, c); });
-            //connect(grid, &GridWidget::rightClicked, [=](){ clearGrid(r, c); });
+            connect(grid, &GridWidget::rightClicked, [=](){ clearGrid(r, c); });
         }
     }
 
@@ -94,8 +100,12 @@ MainWindow::MainWindow(QWidget *parent) :
     clearButton->move(margin + (gridSize * 3 + spacing) * 2, margin + gridSize * 9 + halfSize);
     clearButton->setFixedSize(gridSize * 3, gridSize);
 
+    int nIndex = QFontDatabase::addApplicationFont(":/sudoku/fonts/ARLRDBD.TTF");
+    QStringList strList(QFontDatabase::applicationFontFamilies(nIndex));
+
     m_undoButton = new QPushButton("<");
     m_undoButton->setParent(this);
+    m_undoButton->setFont(QFont(strList.at(0), 12));
     m_undoButton->move(margin + gridSize * 9 + halfSize, margin + gridSize * 9 + halfSize);
     m_undoButton->setFixedSize(halfSize, gridSize);
     m_undoButton->setStyleSheet("QWidget{background-color:#FFFFFF;color:#5F5F5F;"
@@ -105,6 +115,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_redoButton = new QPushButton(">");
     m_redoButton->setParent(this);
+    m_redoButton->setFont(QFont(strList.at(0), 12));
     m_redoButton->move(margin + gridSize * 10, margin + gridSize * 9 + halfSize);
     m_redoButton->setFixedSize(halfSize, gridSize);
     m_redoButton->setStyleSheet("QWidget{background-color:#FFFFFF;color:#5F5F5F;"
@@ -158,8 +169,18 @@ void MainWindow::receiveResult(QList<int> result)
     int r = result.at(1);
     int c = result.at(2);
     int selected = result.at(0);
-    qDebug() << result.at(0) << result.at(1) << result.at(2);
-    changeNumber(r, c, m_grids[r][c]->value(), selected);
+    int previous = m_grids[r][c]->value();
+
+    if (previous == selected)
+    {
+        return;
+    }
+
+    changeNumber(r, c, previous, selected);
+    m_undoOps.append(Op(r, c, previous, selected));
+    m_redoOps.clear();
+    m_undoButton->setEnabled(true);
+    m_redoButton->setEnabled(false);
 }
 
 
@@ -188,11 +209,6 @@ void MainWindow::highlight(int num, int active)
 // 为了实现undo/redo剥离出修改数值的代码
 void MainWindow::changeNumber(int r, int c, int previous, int selected)
 {
-    if (previous == selected)
-    {
-        return;
-    }
-
     m_grids[r][c]->setValue(selected);
     m_grids[r][c]->clearConflict();
 
@@ -222,6 +238,7 @@ void MainWindow::changeNumber(int r, int c, int previous, int selected)
                 ++num;
             }
         }
+        qDebug()<<num;
         m_grids[r][c]->addConflict(num);
     }
 }
@@ -244,34 +261,6 @@ void MainWindow::clearGrid(int r, int c)
     m_redoButton->setEnabled(false);
 }
 
-// 冲突检测 | 废除
-void MainWindow::changeGrid(int r, int c)
-{
-    if (m_panel->isOpened())
-    {
-        m_panel->close();
-        return;
-    }
-
-    //m_panel->move(margin + gridSize * c + c / 3 * spacing, margin + r * gridSize + r / 3 * spacing);
-    m_panel->exec();
-    return;
-
-    // selected为0表示没做操作就退出了
-    int selected = 0;
-    if (selected == 0)
-    {
-        return;
-    }
-
-    int previous = m_grids[r][c]->value();
-    changeNumber(r, c, previous, selected);
-
-    m_undoOps.append(Op(r, c, previous, selected));
-    m_redoOps.clear();
-    m_undoButton->setEnabled(true);
-    m_redoButton->setEnabled(false);
-}
 
 // 不要多次调用plus,冲突检测 | 完成
 void MainWindow::clearAll()

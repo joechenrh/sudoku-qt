@@ -1,6 +1,8 @@
 ﻿#include "gridwidget.h"
 
+#include <QDebug>
 #include <QStackedLayout>
+#include <QFontDatabase>
 #include <QGraphicsOpacityEffect>
 #include <QGraphicsDropShadowEffect>
 
@@ -21,7 +23,7 @@
 
 
 GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
-    : QWidget(parent), m_enabled(true), m_value(0), m_numConflict(1), m_row(row), m_col(col)
+    : QWidget(parent), m_row(row), m_col(col), m_enabled(true), m_value(0), m_numConflict(1)
 {
     // 设置大小和阴影
     QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect(this);
@@ -39,7 +41,10 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
                                 .arg(col == 0 ? "left" : "right");
     }
 
-    QFont buttonFont("华文新魏", 20);
+    int nIndex = QFontDatabase::addApplicationFont(":/sudoku/fonts/ARLRDBD.TTF");
+    QStringList strList(QFontDatabase::applicationFontFamilies(nIndex));
+
+    QFont buttonFont = QFont(strList.at(0));
     buttonFont.setPointSize(25);
     buttonFont.setBold(true);
 
@@ -61,7 +66,7 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
     layout->addWidget(m_background);
     layout->setStackingMode(QStackedLayout::StackAll);
 
-    int bias = size * 0.125;
+    int bias = static_cast<int>(size * 0.125);
     m_buttonStyle = QString("border-radius:%1px;border:%2px solid %3;"
                             "background-color:transparent;color:%4").arg(size / 2 - bias );
 
@@ -152,8 +157,9 @@ void GridWidget::addConflict(int num)
     }
 
     // 添加冲突数一定会将状态从无冲突转为有冲突
+    qDebug() << m_button->geometry();
     m_numConflict += num;
-    m_borderRadius = BORDER_RADIUS_UNABLED;
+    m_borderRadius = BORDER_RADIUS_ENABLED;
     m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
 }
 

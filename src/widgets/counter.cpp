@@ -1,10 +1,11 @@
 ﻿#include "counter.h"
+#include <QFontDatabase>
 
 #define NUM_COLOR "#E66F99"                 // color of numLabel
-#define CNT_COLOR_UNHOVERED "#F1F1F1"       // color of cntLabel when not hovered
+#define CNT_COLOR_UNHOVERED "#FAFAFA"       // color of cntLabel when not hovered
 #define CNT_COLOR_HOVERED "#FADFE8"         // color of cntLabel when hovered
 #define CNT_FONT_COLOR "#5F5F5F"            // font color of cntLabel
-#define NUM_FONT_COLOR "#5F5F5F"            // font color of numLabel
+#define NUM_FONT_COLOR "#FAFAFA"            // font color of numLabel
 
 Counter::Counter(int num, int size, QWidget *parent)
     : QWidget(parent), m_count(9)
@@ -16,13 +17,17 @@ Counter::Counter(int num, int size, QWidget *parent)
                         "border-radius: %5px;"
                         "color: %6; background: %7;";
 
-    int lr = int(size * 0.5);  // radius of cntLabel
+    int lr = int(size * 0.45);  // radius of cntLabel
     int sr = int(size * 0.2);  // radius of numLabel
 
-    QFont cntFont("华文新魏", 16);
-    cntFont.setBold(true);
+    int nIndex = QFontDatabase::addApplicationFont(":/sudoku/fonts/ARLRDBD.TTF");
+    QStringList strList(QFontDatabase::applicationFontFamilies(nIndex));
 
-    QFont numFont("华文新魏", 10);
+    QFont cntFont = QFont(strList.at(0));
+    cntFont.setPointSize(20);
+
+    QFont numFont = QFont(strList.at(0));
+    numFont.setPointSize(10);
     numFont.setBold(true);
 
     QString numStyle = baseStyle.arg(2 * sr).arg(sr).arg(NUM_FONT_COLOR);

@@ -42,7 +42,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = nullptr);
 
     ~MainWindow();
 
@@ -55,7 +55,8 @@ public:
 
 private slots:
     /**
-     * @brief 接受结果
+     * @brief 接收结果
+     * @param result 长度为三的数组，分别是改变值，行，列
      */
     void receiveResult(QList<int> result);
 
@@ -101,13 +102,6 @@ private:
      * @see smartAssistOn
      */
     void smartAssistOff(int r, int c);
-
-    /**
-     * @brief changeGrid 修改某个单元格的值
-     * @param r 所选行
-     * @param c 所选列
-     */
-    void changeGrid(int r, int c);
 
     /**
      * @brief 清除某个单元格的值

@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/sudoku/fonts">
+        <file>ARLRDBD.TTF</file>
+    </qresource>
+    <qresource prefix="/sudoku/puzzles"/>
+</RCC>

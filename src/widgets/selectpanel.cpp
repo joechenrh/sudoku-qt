@@ -5,6 +5,7 @@
 #include <QPainter>
 #include <QApplication>
 #include <QPropertyAnimation>
+#include <QFontDatabase>
 #include <QGraphicsOpacityEffect>
 
 SelectPanel* SelectPanel::m_instance = nullptr;
@@ -19,10 +20,15 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
     this->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
     this->setFixedSize(size, size);
 
-    QFont hoverFont("华文新魏", 16);
+    int nIndex = QFontDatabase::addApplicationFont(":/sudoku/fonts/ARLRDBD.TTF");
+    QStringList strList(QFontDatabase::applicationFontFamilies(nIndex));
+
+    QFont hoverFont = QFont(strList.at(0));
+    hoverFont.setPointSize(16);
     hoverFont.setBold(true);
 
-    QFont normalFont("华文新魏", 12);
+    QFont normalFont = QFont(strList.at(0));
+    normalFont.setPointSize(12);
 
     QString enterStylesheet = "QWidget{color:#FAFAFA; background-color:#FB78A5; border:0px solid black;}";
     QString leaveStylesheet = "QWidget{color:#FBDFE8; background-color:#FB78A5; border:0px solid black;}";

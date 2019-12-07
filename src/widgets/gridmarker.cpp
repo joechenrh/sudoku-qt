@@ -1,12 +1,13 @@
 ﻿#include "gridmarker.h"
 
+#include <QDebug>
 #include <QGraphicsOpacityEffect>
 
 #define MARKER_COLOR "#FB78A5"           // 标记本身的颜色
 #define MARKER_SHADOW_COLOR "#E6CED6"    // 标记阴影的颜色
 
 GridMarker::GridMarker(int size, QWidget *parent)
-    : QLabel(parent), m_size(size), m_indent(2)
+    : QLabel(parent), m_size(size), m_indent(3)
 {
     QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect;
     opacityEffect->setOpacity(0.0);
@@ -64,7 +65,7 @@ void GridMarker::reveal()
         m_opacityAnimation->stop();
     }
 
-    int start = m_size * 0.2 - m_indent;
+    int start = static_cast<int>(m_size * 0.2) - m_indent;
 
     m_scaleAnimation->setStartValue(m_scaleAnimation->currentValue());
     m_scaleAnimation->setEndValue(QRect(start, start, m_size - 2 * start, m_size - 2 * start));
@@ -80,6 +81,8 @@ void GridMarker::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
+    //qDebug() << this->geometry();
+
     if (width() < m_indent * 2)
     {
         painter.drawEllipse(1, 1, 0, 0);  // draw nothing
@@ -88,7 +91,7 @@ void GridMarker::paintEvent(QPaintEvent *event)
     {
         painter.setPen(Qt::NoPen);
         painter.setBrush(QBrush(QColor(MARKER_SHADOW_COLOR)));
-        painter.drawEllipse(m_indent, m_indent + 2, width() - 2 * m_indent, width() - 2 * m_indent);
+        painter.drawEllipse(m_indent, m_indent * 2, width() - 2 * m_indent, width() - 2 * m_indent);
 
         painter.setPen(Qt::NoPen);
         painter.setBrush(QBrush(QColor(MARKER_COLOR)));

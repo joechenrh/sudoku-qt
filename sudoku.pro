@@ -37,6 +37,7 @@ SOURCES += \
     src/widgets/counter.cpp
 
 HEADERS += \
+    include/font.h \
     include/sudokusolver.h \
     include/mainwindow.h \
     include/widgets/hoverbutton.h \
@@ -49,3 +50,6 @@ FORMS += \
         ui\mainwindow.ui
 
 CONFIG += C++11
+
+RESOURCES += \
+    resources/resources.qrc

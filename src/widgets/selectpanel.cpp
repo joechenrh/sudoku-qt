@@ -12,7 +12,7 @@ SelectPanel* SelectPanel::m_instance = nullptr;
 QMutex SelectPanel::m_mutex;
 
 SelectPanel::SelectPanel(int size, QWidget *parent)
-    : QDialog(parent), opened(false)
+    : QWidget(parent), opened(false)
 {
     m_buttons.resize(9);
     m_selected.resize(9);
@@ -99,7 +99,8 @@ int SelectPanel::exec()
     drawMask();
     m_animation->start();
 
-    return QDialog::exec();
+    QWidget::show();
+    return 1;
 }
 
 bool SelectPanel::close()
@@ -118,12 +119,21 @@ bool SelectPanel::close()
     m_animation->start();
     */
 
-    return QDialog::close();
+    QWidget::hide();
+    return 1;
 }
 
 bool SelectPanel::isOpened() const
 {
     return opened;
+}
+
+void SelectPanel::setSelected(QList<int> list)
+{
+    for (auto v : list)
+    {
+        //m_buttons[v - 1]->setStyleSheet();
+    }
 }
 
 

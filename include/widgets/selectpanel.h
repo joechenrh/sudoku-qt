@@ -8,7 +8,7 @@
 #ifndef SELECTPANEL_H
 #define SELECTPANEL_H
 
-#include <qDialog>
+#include <QDialog>
 #include <QVector>
 #include <QLabel>
 #include <QMutex>
@@ -22,7 +22,7 @@
  * @details 使用SelectPanel::instance()获取单例
  * 在打开关闭时会有淡入淡出效果
  */
-class SelectPanel : public QDialog
+class SelectPanel : public QWidget
 {
     Q_OBJECT
 
@@ -61,6 +61,12 @@ public:
      * @param widget 触发的控件
      */
     void setBase(QWidget *widget, int row, int col);
+
+    /**
+     * @brief setSelected 设置初始值
+     * @param list 当前格子已选择的值
+     */
+    void setSelected(QList<int> list);
 
 protected:
     /**

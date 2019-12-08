@@ -119,6 +119,11 @@ private:
      */
     void changeNumber(int r, int c, int previous, int selected);
 
+
+    int m_sr;
+
+    int m_sc;
+
     /**
      * @brief 储存每个数组单元格的影响范围
      */

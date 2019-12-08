@@ -127,6 +127,9 @@ void GridWidget::revealButton()
 
 void GridWidget::buttonClicked()
 {
+    //emit clicked();
+
+
     if (m_panel->isOpened())
     {
         m_panel->close();
@@ -135,6 +138,7 @@ void GridWidget::buttonClicked()
     m_panel->setBase(this, m_row, m_col);
     m_panel->move(geometry().x(), geometry().y());
     m_panel->exec();
+
 }
 
 void GridWidget::buttonRightClicked()

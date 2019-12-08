@@ -38,7 +38,7 @@ QPushButton* createButton(QString text)
 }
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent), ui(new Ui::MainWindow)
+    QMainWindow(parent), ui(new Ui::MainWindow), m_sr(0), m_sc(0)
 {
     // 窗口设置
     QColor color = QColor("#DDE2E5");
@@ -47,8 +47,6 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setPalette(p);
 
     /*********************************************/
-
-
 
     m_grids.resize(9);
     m_controlRanges.resize(9);
@@ -78,10 +76,26 @@ MainWindow::MainWindow(QWidget *parent) :
             grid->move(margin + c * gridSize + c / 3 * spacing, margin + r * gridSize + r / 3 * spacing);
             m_grids[r][c] = grid;
 
+
             connect(grid, &GridWidget::hovered,      [=](){ smartAssistOn(r, c); });
             connect(grid, &GridWidget::leaved,       [=](){ smartAssistOff(r, c); });
-            //connect(grid, &GridWidget::clicked,      [=](){ changeGrid(r, c); });
             connect(grid, &GridWidget::rightClicked, [=](){ clearGrid(r, c); });
+
+            /*
+            connect(grid, &GridWidget::clicked,      [=](){
+                if (m_panel->isVisible())
+                {
+                    m_panel->close();
+                    return;
+                }
+                m_sr = r;
+                m_sc = c;
+                auto geometry = m_grids[r][c]->geometry();
+                m_panel->setBase(m_grids[r][c], r, c);
+                m_panel->move(geometry.x(), geometry.y());
+                m_panel->exec();
+            });
+            */
         }
     }
 
@@ -126,7 +140,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_panel = SelectPanel::instance(gridSize);
     m_panel->setParent(this);
-    m_panel->close();
+    m_panel->hide();
 
     connect(loadButton,   SIGNAL( clicked() ), this, SLOT( loadRandomPuzzle()) );
     connect(clearButton,  SIGNAL( clicked() ), this, SLOT( clearAll()) );
@@ -143,7 +157,7 @@ MainWindow::MainWindow(QWidget *parent) :
        counter->move(margin + gridSize * 9 + halfSize, margin + space + i * (space + gridSize));
        m_counters.push_back(counter);
        connect(counter, &Counter::hovered, [=]() {highlight(i + 1, true);});
-       connect(counter, &Counter::leave, [=]() {highlight(i + 1, false);});
+       connect(counter, &Counter::leave,   [=]() {highlight(i + 1, false);});
     }
 
     loadRandomPuzzle();
@@ -173,7 +187,7 @@ void MainWindow::receiveResult(QList<int> result)
 
     if (previous == selected)
     {
-        return;
+        selected = 0;
     }
 
     changeNumber(r, c, previous, selected);

@@ -12,7 +12,7 @@ SelectPanel* SelectPanel::m_instance = nullptr;
 QMutex SelectPanel::m_mutex;
 
 SelectPanel::SelectPanel(int size, QWidget *parent)
-    : QWidget(parent), opened(false)
+    : QWidget(parent)
 {
     m_buttons.resize(9);
     m_selected.resize(9);
@@ -84,9 +84,8 @@ SelectPanel* SelectPanel::instance(int size, QWidget* parent)
 }
 
 
-int SelectPanel::exec()
+void SelectPanel::show()
 {
-    opened = true;
     selected = 0;
     if (m_animation->state() != QAbstractAnimation::Stopped)
     {
@@ -100,13 +99,11 @@ int SelectPanel::exec()
     m_animation->start();
 
     QWidget::show();
-    return 1;
 }
 
-bool SelectPanel::close()
+void SelectPanel::hide()
 {
     // TODO: 第一次关闭时不要淡出
-    opened = false;
 
     /*
     if (m_animation->state() != QAbstractAnimation::Stopped)
@@ -120,12 +117,6 @@ bool SelectPanel::close()
     */
 
     QWidget::hide();
-    return 1;
-}
-
-bool SelectPanel::isOpened() const
-{
-    return opened;
 }
 
 void SelectPanel::setSelected(QList<int> list)

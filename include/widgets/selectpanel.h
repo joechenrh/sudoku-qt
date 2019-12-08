@@ -39,22 +39,16 @@ public:
     static SelectPanel* instance(int size, QWidget *parent = nullptr);
 
     /**
-     * @brief 返回当前对话框的状态
-     * @return 当前对话框是否打开
-     */
-    bool isOpened() const;
-
-    /**
      * @brief 打开控件，同时触发动画效果
      * @return 打开结果
      */
-    int exec();
+    void show();
 
     /**
      * @brief 关闭控件，同时触发动画效果
      * @return 关闭结果
      */
-    bool close();
+    void hide();
 
     /**
      * @brief 设置触发了exec()的控件，会将鼠标事件传递给此控件
@@ -102,11 +96,6 @@ private:
      * @see setBase
      */
     QWidget* m_base;
-
-    /**
-     * @brief 记录实例是否已经被打开
-     */
-    bool opened;
 
     /**
      * @brief 记录当前选择的数字

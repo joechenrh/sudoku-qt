@@ -23,7 +23,7 @@
 
 
 GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
-    : QWidget(parent), m_row(row), m_col(col), m_enabled(true), m_value(0), m_numConflict(1)
+    : QWidget(parent), m_enabled(true), m_value(0), m_numConflict(1)
 {
     // 设置大小和阴影
     QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect(this);
@@ -127,28 +127,11 @@ void GridWidget::revealButton()
 
 void GridWidget::buttonClicked()
 {
-    //emit clicked();
-
-
-    if (m_panel->isOpened())
-    {
-        m_panel->close();
-        return;
-    }
-    m_panel->setBase(this, m_row, m_col);
-    m_panel->move(geometry().x(), geometry().y());
-    m_panel->exec();
-
+    emit clicked();
 }
 
 void GridWidget::buttonRightClicked()
 {
-    if (m_panel->isOpened())
-    {
-        m_panel->close();
-        return;
-    }
-
     emit rightClicked();
 }
 

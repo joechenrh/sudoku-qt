@@ -130,16 +130,6 @@ private:
     SelectPanel *m_panel;
 
     /**
-     * @brief 单元格所处行
-     */
-    int m_row;
-
-    /**
-     * @brief 单元格所处列
-     */
-    int m_col;
-
-    /**
      * @brief 最顶层的按钮，用于显示数值和触发单击事件
      */
     HoverButton *m_button;

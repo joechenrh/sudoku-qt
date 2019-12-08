@@ -79,9 +79,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
             connect(grid, &GridWidget::hovered,      [=](){ smartAssistOn(r, c); });
             connect(grid, &GridWidget::leaved,       [=](){ smartAssistOff(r, c); });
-            connect(grid, &GridWidget::rightClicked, [=](){ clearGrid(r, c); });
+            connect(grid, &GridWidget::rightClicked, [=]()
+            {
+                if (m_panel->isVisible())
+                {
+                    m_panel->hide();
+                    return;
+                }
+                clearGrid(r, c);
+            });
 
-            /*
             connect(grid, &GridWidget::clicked,      [=](){
                 if (m_panel->isVisible())
                 {
@@ -93,9 +100,8 @@ MainWindow::MainWindow(QWidget *parent) :
                 auto geometry = m_grids[r][c]->geometry();
                 m_panel->setBase(m_grids[r][c], r, c);
                 m_panel->move(geometry.x(), geometry.y());
-                m_panel->exec();
+                m_panel->show();
             });
-            */
         }
     }
 

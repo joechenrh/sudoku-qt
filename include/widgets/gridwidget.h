@@ -53,6 +53,10 @@ public:
      */
     int value() const;
 
+    void enter();
+
+    void leave();
+
     /**
      * @brief hideButton
      */
@@ -127,8 +131,6 @@ private slots:
     void buttonRightClicked();
 
 private:
-    SelectPanel *m_panel;
-
     /**
      * @brief 最顶层的按钮，用于显示数值和触发单击事件
      */

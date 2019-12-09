@@ -6,14 +6,14 @@
 #define MARKER_COLOR "#FB78A5"           // 标记本身的颜色
 #define MARKER_SHADOW_COLOR "#E6CED6"    // 标记阴影的颜色
 
+const int duration = 150;
+
 GridMarker::GridMarker(int size, QWidget *parent)
-    : QLabel(parent), m_size(size), m_indent(3)
+    : QLabel(parent), m_size(size), m_indent(2)
 {
     QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect;
     opacityEffect->setOpacity(0.0);
     this->setGraphicsEffect(opacityEffect);
-
-    int duration = 200;
 
     m_scaleAnimation = new QPropertyAnimation(this, "geometry");
     m_scaleAnimation->setStartValue(QRect(size / 2, size / 2, 0, 0));
@@ -48,6 +48,8 @@ void GridMarker::hide()
     m_scaleAnimation->setEndValue(QRect(m_size / 2, m_size / 2, 0, 0));
     m_scaleAnimation->start();
 
+    int newDuration = static_cast<int>(duration * m_opacityAnimation->currentValue().toDouble());
+    m_opacityAnimation->setDuration(newDuration);
     m_opacityAnimation->setStartValue(m_opacityAnimation->currentValue());
     m_opacityAnimation->setEndValue(0.0);
     m_opacityAnimation->start();
@@ -71,17 +73,17 @@ void GridMarker::reveal()
     m_scaleAnimation->setEndValue(QRect(start, start, m_size - 2 * start, m_size - 2 * start));
     m_scaleAnimation->start();
 
+    int newDuration = static_cast<int>(duration - duration * m_opacityAnimation->currentValue().toDouble());
+    m_opacityAnimation->setDuration(newDuration);
     m_opacityAnimation->setStartValue(m_opacityAnimation->currentValue());
     m_opacityAnimation->setEndValue(0.999);  // 这也许是一个小bug，如果设置过geometry，再设置透明度为1就会有问题
     m_opacityAnimation->start();
 }
 
-void GridMarker::paintEvent(QPaintEvent *event)
+void GridMarker::paintEvent(QPaintEvent*)
 {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
-
-    //qDebug() << this->geometry();
 
     if (width() < m_indent * 2)
     {

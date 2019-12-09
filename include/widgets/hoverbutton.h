@@ -38,13 +38,13 @@ protected:
      * @brief 鼠标移入触发的事件
      * @param e 鼠标事件
      */
-    void enterEvent(QEvent *e);
+    void enterEvent(QEvent *);
 
     /**
      * @brief 鼠标移出触发的事件
      * @param e 鼠标事件
      */
-    void leaveEvent(QEvent *e);
+    void leaveEvent(QEvent *);
 
 private slots:
     /**

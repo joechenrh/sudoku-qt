@@ -121,9 +121,13 @@ void SelectPanel::hide()
 
 void SelectPanel::setSelected(QList<int> list)
 {
+    for (auto &v : m_selected)
+    {
+        v = 0;
+    }
     for (auto v : list)
     {
-        //m_buttons[v - 1]->setStyleSheet();
+        m_selected[v - 1] = 1;
     }
 }
 

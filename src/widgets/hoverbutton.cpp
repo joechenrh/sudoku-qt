@@ -5,12 +5,12 @@
 HoverButton::HoverButton(QWidget *parent) : QPushButton(parent)
 {
     QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect;
-    opacityEffect->setOpacity(0.99);
+    opacityEffect->setOpacity(0.999);
     this->setGraphicsEffect(opacityEffect);
 
     m_animation = new QPropertyAnimation(opacityEffect, "opacity", this);
     m_animation->setDuration(100);
-    m_animation->setStartValue(0.99);
+    m_animation->setStartValue(0.999);
     m_animation->setEasingCurve(QEasingCurve::Linear);
 }
 
@@ -38,12 +38,12 @@ void HoverButton::reveal()
     m_animation->start();
 }
 
-void HoverButton::enterEvent(QEvent *e)
+void HoverButton::enterEvent(QEvent*)
 {
     emit hovered();
 }
 
-void HoverButton::leaveEvent(QEvent *e)
+void HoverButton::leaveEvent(QEvent*)
 {
     emit leaved();
 }

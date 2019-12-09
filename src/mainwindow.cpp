@@ -19,7 +19,7 @@ QPushButton* createButton(QString text)
     int nIndex = QFontDatabase::addApplicationFont(":/sudoku/fonts/ARLRDBD.TTF");
     QStringList strList(QFontDatabase::applicationFontFamilies(nIndex));
 
-    QFont buttonFont = QFont(strList.at(0));
+    QFont buttonFont = QFont(strList.at(0), 12);
     buttonFont.setPointSize(12);
     buttonFont.setBold(true);
 
@@ -77,28 +77,47 @@ MainWindow::MainWindow(QWidget *parent) :
             m_grids[r][c] = grid;
 
 
-            connect(grid, &GridWidget::hovered,      [=](){ smartAssistOn(r, c); });
-            connect(grid, &GridWidget::leaved,       [=](){ smartAssistOff(r, c); });
+            connect(grid, &GridWidget::hovered,      [=]()
+            {
+                if (!grid->isEnabled() || m_panel->isVisible())
+                {
+                    return;
+                }
+                smartAssistOn(r, c);
+                grid->enter();
+            });
+            connect(grid, &GridWidget::leaved,       [=]()
+            {
+                if (!grid->isEnabled() || m_panel->isVisible())
+                {
+                    return;
+                }
+                smartAssistOff(r, c);
+                grid->leave();
+            });
             connect(grid, &GridWidget::rightClicked, [=]()
             {
                 if (m_panel->isVisible())
                 {
                     m_panel->hide();
+                    smartAssistOff(m_sr, m_sc);
+                    m_grids[m_sr][m_sc]->leave();
                     return;
                 }
                 clearGrid(r, c);
             });
-
             connect(grid, &GridWidget::clicked,      [=](){
                 if (m_panel->isVisible())
                 {
-                    m_panel->close();
+                    m_panel->hide();
+                    smartAssistOff(m_sr, m_sc);
+                    m_grids[m_sr][m_sc]->leave();
                     return;
                 }
                 m_sr = r;
                 m_sc = c;
-                auto geometry = m_grids[r][c]->geometry();
-                m_panel->setBase(m_grids[r][c], r, c);
+                auto geometry = grid->geometry();
+                m_panel->setBase(grid, r, c);
                 m_panel->move(geometry.x(), geometry.y());
                 m_panel->show();
             });
@@ -203,7 +222,6 @@ void MainWindow::receiveResult(QList<int> result)
     m_redoButton->setEnabled(false);
 }
 
-
 void MainWindow::highlight(int num, int active)
 {
     for (int r = 0; r < 9; r++)
@@ -226,7 +244,6 @@ void MainWindow::highlight(int num, int active)
     }
 }
 
-// 为了实现undo/redo剥离出修改数值的代码
 void MainWindow::changeNumber(int r, int c, int previous, int selected)
 {
     m_grids[r][c]->setValue(selected);
@@ -263,7 +280,6 @@ void MainWindow::changeNumber(int r, int c, int previous, int selected)
     }
 }
 
-// 冲突检测 | 完成
 void MainWindow::clearGrid(int r, int c)
 {
     int previous = m_grids[r][c]->value();
@@ -281,8 +297,6 @@ void MainWindow::clearGrid(int r, int c)
     m_redoButton->setEnabled(false);
 }
 
-
-// 不要多次调用plus,冲突检测 | 完成
 void MainWindow::clearAll()
 {
     QVector<int> counts(10, 0);
@@ -311,8 +325,6 @@ void MainWindow::clearAll()
 }
 
 
-
-// 预计算每一格要显示的范围 | 完成
 void MainWindow::smartAssistOff(int r, int c)
 {
     for (auto pair : m_controlRanges[r][c])
@@ -322,7 +334,6 @@ void MainWindow::smartAssistOff(int r, int c)
     m_grids[r][c]->revealButton();
 }
 
-// 同上 | 完成
 void MainWindow::smartAssistOn(int r, int c)
 {
     for (auto pair : m_controlRanges[r][c])
@@ -396,8 +407,6 @@ void MainWindow::solve()
 }
 
 
-
-// 撤销回退
 void MainWindow::redo()
 {
     Op op = m_redoOps.pop();
@@ -411,7 +420,6 @@ void MainWindow::redo()
     }
 }
 
-// 回退
 void MainWindow::undo()
 {
     Op op = m_undoOps.pop();

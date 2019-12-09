@@ -83,10 +83,7 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
 
     connect(m_button, SIGNAL(clicked()),      this, SLOT(buttonClicked()));
     connect(m_button, SIGNAL(rightClicked()), this, SLOT(buttonRightClicked()));
-
-    m_panel = SelectPanel::instance(size);
 }
-
 
 void GridWidget::setEnabled(bool flag)
 {
@@ -144,7 +141,6 @@ void GridWidget::addConflict(int num)
     }
 
     // 添加冲突数一定会将状态从无冲突转为有冲突
-    qDebug() << m_button->geometry();
     m_numConflict += num;
     m_borderRadius = BORDER_RADIUS_ENABLED;
     m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
@@ -174,41 +170,28 @@ void GridWidget::clearConflict()
 }
 
 
-void GridWidget::enterEvent(QEvent *e)
+void GridWidget::enterEvent(QEvent*)
 {
-    if (!m_enabled)
-    {
-        return;
-    }
-
-    m_foreground->hide();
-    m_marker->reveal();
-
-    // 传递hovered信号，修改其他控件的透明的
     emit hovered();
-
-    QWidget::enterEvent(e);
-
-    m_fontColor = FONT_COLOR_HOVERED;
-    m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
-
 }
 
-void GridWidget::leaveEvent(QEvent *e)
+void GridWidget::leaveEvent(QEvent*)
 {
-    if (!m_enabled)
-    {
-        return;
-    }
+    emit leaved();
+}
 
+void GridWidget::enter()
+{
+    m_foreground->hide();
+    m_marker->reveal();
+    m_fontColor = FONT_COLOR_HOVERED;
+    m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+}
+
+void GridWidget::leave()
+{
     m_foreground->reveal();
     m_marker->hide();
-
-    // 传递leaved信号，修改其他控件的透明的
-    emit leaved();
-
-    QWidget::enterEvent(e);
-
     m_fontColor = FONT_COLOR_NORMAL;
     m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
 }

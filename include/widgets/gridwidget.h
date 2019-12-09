@@ -11,7 +11,6 @@
 
 #include "hoverbutton.h"
 #include "gridmarker.h"
-#include "selectpanel.h"
 
 /**
  * @brief The GridWidget class
@@ -68,17 +67,10 @@ public:
     void revealButton();
 
     /**
-     * @brief 添加冲突数
-     * @param num 新增的冲突数
+     * @brief 调整冲突数
+     * @param num 改变的冲突数
      */
-    void addConflict(int num);
-
-    /**
-     * @brief 减少冲突数
-     * @param num 减少的冲突数
-     * @
-     */
-    void removeConflict(int num);
+    void changeConflict(int num);
 
     /**
      * @brief 清空冲突数
@@ -147,20 +139,9 @@ private:
     HoverButton *m_foreground;
 
     /**
-     * @brief 底层的背景
-     */
-    QLabel *m_background;
-
-    /**
      * @brief 顶层按钮的stylesheet
      */
     QString m_buttonStyle;
-
-    /**
-     * @brief 当前单元格是否可编辑
-     * @see setEnabled
-     */
-    bool m_enabled;
 
     /**
      * @brief 当前单元格的值

@@ -56,9 +56,9 @@ public:
 private slots:
     /**
      * @brief 接收结果
-     * @param result 长度为三的数组，分别是改变值，行，列
+     * @param selected 改变值
      */
-    void receiveResult(QList<int> result);
+    void receiveResult(int selected);
 
     /**
      * @brief 求解当前数独

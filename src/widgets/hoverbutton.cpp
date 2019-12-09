@@ -2,6 +2,8 @@
 
 #include <QGraphicsEffect>
 
+const int duration = 150;
+
 HoverButton::HoverButton(QWidget *parent) : QPushButton(parent)
 {
     QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect;
@@ -9,7 +11,7 @@ HoverButton::HoverButton(QWidget *parent) : QPushButton(parent)
     this->setGraphicsEffect(opacityEffect);
 
     m_animation = new QPropertyAnimation(opacityEffect, "opacity", this);
-    m_animation->setDuration(100);
+    m_animation->setDuration(duration);
     m_animation->setStartValue(0.999);
     m_animation->setEasingCurve(QEasingCurve::Linear);
 }

@@ -37,7 +37,6 @@ SOURCES += \
     src/widgets/counter.cpp
 
 HEADERS += \
-    include/font.h \
     include/sudokusolver.h \
     include/mainwindow.h \
     include/widgets/hoverbutton.h \

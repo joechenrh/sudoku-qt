@@ -5,7 +5,7 @@
  */
 
 
-#include <vector>
+#include <QVector>
 #include <iostream>
 
 enum resType {SOLVED, UNSOLVED, FAILED};
@@ -42,7 +42,7 @@ struct Grid
 {
     int value;
     int count;
-    Grid(int _value = 511) : value(_value), count(bitCount(value)) {};
+    Grid(int _value = 511) : value(_value), count(bitCount(value)) { }
 
     // 删除若干位，返回实际删除的位数
     int remove(int v)
@@ -87,16 +87,15 @@ struct Grid
 
 class SudokuSolver
 {
-    int defaultValue = 511; // 0b111111111
 
-    typedef std::vector<std::vector<Grid>> puzzleType;
+    typedef QVector<QVector<Grid>> puzzleType;
 
 public:
 
-    SudokuSolver(std::vector<std::vector<int>> puzzle)
+    SudokuSolver(QVector<QVector<int>> puzzle)
     {
-        m_res = std::vector<std::vector<int>>(9, std::vector<int>(9, 0));
-        m_puzzle = puzzleType(9, std::vector<Grid>(9));
+        m_res = QVector<QVector<int>>(9, QVector<int>(9, 0));
+        m_puzzle = puzzleType(9, QVector<Grid>(9));
         for (int r = 0; r < 9; r++)
         {
             for (int c = 0; c < 9; c++)
@@ -107,22 +106,14 @@ public:
                 }
             }
         }
-    };
+    }
 
     void Solve()
     {
         Solve(m_puzzle);
-        //for (int i = 0; i < 9; i++)
-        //{
-        //	for (int j = 0; j < 9; j++)
-        //	{
-        //		std::cout << (int)(log(solved[i][j].value) / log(2)) + 1 << " ";
-        //	}
-        //	std::cout << std::endl;
-        //}
     }
 
-    std::vector<std::vector<int>> m_res;
+    QVector<QVector<int>> m_res;
 
 private:
 
@@ -155,7 +146,7 @@ private:
                 int highest = puzzle[r][c].highest();
                 puzzle[r][c].remove(highest);
 
-                puzzleType copy = puzzleType(9, std::vector<Grid>(9));
+                puzzleType copy = puzzleType(9, QVector<Grid>(9));
                 copyData(puzzle, copy);
                 copy[r][c].setResult(highest);
                 Solve(copy);

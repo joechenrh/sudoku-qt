@@ -13,7 +13,7 @@
 
 /**
  * @brief The GridMarker class 鼠标进入九宫格时显示的圆形效果由这个控件绘制
- * @details 通过变化geometry来达到放大缩小的效果,
+ * @details 通过QPropertyAnimation变化geometry来达到放大缩小的效果
  */
 class GridMarker : public QLabel
 {
@@ -38,9 +38,14 @@ public:
 
 private:
     /**
-     * @brief 控件的宽度和高度，控件为正方形
+     * @brief 缩放的最大尺寸
      */
-    int m_size;
+    QRect m_maxSize;
+
+    /**
+     * @brief 缩放的最小尺寸
+     */
+    QRect m_minSize;
 
     /**
      * @brief 控制绘制圆形时的缩进
@@ -52,11 +57,6 @@ private:
      * @brief 控制放大缩小的动画
      */
     QPropertyAnimation *m_scaleAnimation;
-
-    /**
-     * @brief 控制透明度的动画
-     */
-    QPropertyAnimation *m_opacityAnimation;
 
 protected:
     /**

@@ -1,35 +1,20 @@
 ﻿#include "gridmarker.h"
 
-#include <QDebug>
-#include <QGraphicsOpacityEffect>
-
 #define MARKER_COLOR "#FB78A5"           // 标记本身的颜色
 #define MARKER_SHADOW_COLOR "#E6CED6"    // 标记阴影的颜色
 
 const int duration = 150;
 
 GridMarker::GridMarker(int size, QWidget *parent)
-    : QLabel(parent), m_size(size), m_indent(2)
+    : QLabel(parent), m_indent(2)
 {
-    QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect;
-    opacityEffect->setOpacity(0.0);
-    this->setGraphicsEffect(opacityEffect);
+    int start = static_cast<int>(size * 0.2) - m_indent;
+    m_maxSize = QRect(start, start, size - 2 * start, size - 2 * start);
+    m_minSize = QRect(size / 2, size / 2, 0, 0);
 
     m_scaleAnimation = new QPropertyAnimation(this, "geometry");
-    m_scaleAnimation->setStartValue(QRect(size / 2, size / 2, 0, 0));
-    // 不加下面这句第一次显示错误，估计是reveal里currentValue获取的值不对
-    m_scaleAnimation->setEndValue(QRect(size / 2, size / 2, 0, 0));
+    m_scaleAnimation->setStartValue(m_minSize);
     m_scaleAnimation->setDuration(duration);
-    m_scaleAnimation->setEasingCurve(QEasingCurve::OutQuad);
-
-    // 透明度其实不是必须的
-    // 但是控件在初始化时一定会绘制一次，而且控件大小就是layout大小
-    // 所以要么在paintEvent里加个flag，第一次不绘制，要么就加个初始透明度为0
-    // 加透明度显示效果也很不错，就采用这个方案
-    m_opacityAnimation = new QPropertyAnimation(opacityEffect, "opacity", this);
-    m_opacityAnimation->setDuration(duration);
-    m_opacityAnimation->setStartValue(0.0);
-    m_opacityAnimation->setEasingCurve(QEasingCurve::OutQuad);
 }
 
 void GridMarker::hide()
@@ -39,20 +24,9 @@ void GridMarker::hide()
         m_scaleAnimation->stop();
     }
 
-    if (m_opacityAnimation->state() != QAbstractAnimation::Stopped)
-    {
-        m_opacityAnimation->stop();
-    }
-
     m_scaleAnimation->setStartValue(m_scaleAnimation->currentValue());
-    m_scaleAnimation->setEndValue(QRect(m_size / 2, m_size / 2, 0, 0));
+    m_scaleAnimation->setEndValue(m_minSize);
     m_scaleAnimation->start();
-
-    int newDuration = static_cast<int>(duration * m_opacityAnimation->currentValue().toDouble());
-    m_opacityAnimation->setDuration(newDuration);
-    m_opacityAnimation->setStartValue(m_opacityAnimation->currentValue());
-    m_opacityAnimation->setEndValue(0.0);
-    m_opacityAnimation->start();
 }
 
 void GridMarker::reveal()
@@ -62,42 +36,26 @@ void GridMarker::reveal()
         m_scaleAnimation->stop();
     }
 
-    if (m_opacityAnimation->state() != QAbstractAnimation::Stopped)
-    {
-        m_opacityAnimation->stop();
-    }
-
-    int start = static_cast<int>(m_size * 0.2) - m_indent;
-
     m_scaleAnimation->setStartValue(m_scaleAnimation->currentValue());
-    m_scaleAnimation->setEndValue(QRect(start, start, m_size - 2 * start, m_size - 2 * start));
+    m_scaleAnimation->setEndValue(m_maxSize);
     m_scaleAnimation->start();
-
-    int newDuration = static_cast<int>(duration - duration * m_opacityAnimation->currentValue().toDouble());
-    m_opacityAnimation->setDuration(newDuration);
-    m_opacityAnimation->setStartValue(m_opacityAnimation->currentValue());
-    m_opacityAnimation->setEndValue(0.999);  // 这也许是一个小bug，如果设置过geometry，再设置透明度为1就会有问题
-    m_opacityAnimation->start();
 }
 
 void GridMarker::paintEvent(QPaintEvent*)
 {
+    int size = width();
+    if (size < m_indent * 2)
+    {
+        return;
+    }
+
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QBrush(QColor(MARKER_SHADOW_COLOR)));
+    painter.drawEllipse(m_indent, m_indent * 2, size - 2 * m_indent, size - 2 * m_indent);
 
-    if (width() < m_indent * 2)
-    {
-        painter.drawEllipse(1, 1, 0, 0);  // draw nothing
-    }
-    else
-    {
-        painter.setPen(Qt::NoPen);
-        painter.setBrush(QBrush(QColor(MARKER_SHADOW_COLOR)));
-        painter.drawEllipse(m_indent, m_indent * 2, width() - 2 * m_indent, width() - 2 * m_indent);
-
-        painter.setPen(Qt::NoPen);
-        painter.setBrush(QBrush(QColor(MARKER_COLOR)));
-        painter.drawEllipse(m_indent, m_indent, width() - 2 * m_indent, width() - 2 * m_indent);
-
-    }
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QBrush(QColor(MARKER_COLOR)));
+    painter.drawEllipse(m_indent, m_indent, size - 2 * m_indent, size - 2 * m_indent);
 }

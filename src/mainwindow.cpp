@@ -12,7 +12,7 @@
 #define margin 10              // 四周的边缘宽度
 #define gridSize 75            // 格子的大小
 #define halfSize gridSize / 2  // 半个格子的大小，即按钮的高度
-#define spacing 5             // 九宫格之间的间隔
+#define spacing 5              // 九宫格之间的间隔
 
 QPushButton* createButton(QString text)
 {
@@ -20,7 +20,6 @@ QPushButton* createButton(QString text)
     QStringList strList(QFontDatabase::applicationFontFamilies(nIndex));
 
     QFont buttonFont = QFont(strList.at(0), 12);
-    buttonFont.setPointSize(12);
     buttonFont.setBold(true);
 
     QGraphicsDropShadowEffect *shadow_effect = new QGraphicsDropShadowEffect;
@@ -71,11 +70,10 @@ MainWindow::MainWindow(QWidget *parent) :
             }
             m_controlRanges[r][c].erase(m_controlRanges[r][c].find(qMakePair(r, c)));
 
-            GridWidget *grid = new GridWidget(r, c);
+            GridWidget *grid = new GridWidget(r, c, gridSize);
             grid->setParent(this);
             grid->move(margin + c * gridSize + c / 3 * spacing, margin + r * gridSize + r / 3 * spacing);
             m_grids[r][c] = grid;
-
 
             connect(grid, &GridWidget::hovered,      [=]()
             {
@@ -99,9 +97,9 @@ MainWindow::MainWindow(QWidget *parent) :
             {
                 if (m_panel->isVisible())
                 {
-                    m_panel->hide();
+                    m_grids[m_sr][m_sc]->hideButton();
                     smartAssistOff(m_sr, m_sc);
-                    m_grids[m_sr][m_sc]->leave();
+                    m_panel->hide();
                     return;
                 }
                 clearGrid(r, c);
@@ -109,16 +107,15 @@ MainWindow::MainWindow(QWidget *parent) :
             connect(grid, &GridWidget::clicked,      [=](){
                 if (m_panel->isVisible())
                 {
-                    m_panel->hide();
+                    m_grids[m_sr][m_sc]->hideButton();
                     smartAssistOff(m_sr, m_sc);
-                    m_grids[m_sr][m_sc]->leave();
+                    m_panel->hide();
                     return;
                 }
+                grid->leave();
                 m_sr = r;
                 m_sc = c;
-                auto geometry = grid->geometry();
-                m_panel->setBase(grid, r, c);
-                m_panel->move(geometry.x(), geometry.y());
+                m_panel->move(grid->geometry().x(), grid->geometry().y());
                 m_panel->show();
             });
         }
@@ -148,7 +145,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_undoButton->move(margin + gridSize * 9 + halfSize, margin + gridSize * 9 + halfSize);
     m_undoButton->setFixedSize(halfSize, gridSize);
     m_undoButton->setStyleSheet("QWidget{background-color:#FFFFFF;color:#5F5F5F;"
-                                "border-top-left-radius:15px;border-bottom-left-radius:15px;}"
+                                "border-top-left-radius:37px;border-bottom-left-radius:37px;}"
                                 "QPushButton:pressed{background-color:rgb(222, 222, 222);}"
                                 "QPushButton:!enabled{background-color:rgb(200, 200, 200);}");
 
@@ -158,22 +155,21 @@ MainWindow::MainWindow(QWidget *parent) :
     m_redoButton->move(margin + gridSize * 10, margin + gridSize * 9 + halfSize);
     m_redoButton->setFixedSize(halfSize, gridSize);
     m_redoButton->setStyleSheet("QWidget{background-color:#FFFFFF;color:#5F5F5F;"
-                                "border-top-right-radius:15px;border-bottom-right-radius:15px;}"
+                                "border-top-right-radius:37px;border-bottom-right-radius:37px;}"
                                 "QPushButton:hover{background-color:rgb(236, 236, 236);}"
                                 "QPushButton:pressed{background-color:rgb(222, 222, 222);}"
                                 "QPushButton:!enabled{background-color:rgb(200, 200, 200);}");
 
-    m_panel = SelectPanel::instance(gridSize);
+    m_panel = new SelectPanel(gridSize);
     m_panel->setParent(this);
     m_panel->hide();
 
-    connect(loadButton,   SIGNAL( clicked() ), this, SLOT( loadRandomPuzzle()) );
-    connect(clearButton,  SIGNAL( clicked() ), this, SLOT( clearAll()) );
-    connect(solveButton,  SIGNAL( clicked() ), this, SLOT( solve()) );
-    connect(m_undoButton, SIGNAL( clicked() ), this, SLOT( undo()) );
-    connect(m_redoButton, SIGNAL( clicked() ), this, SLOT( redo()) );
-    //connect(m_panel,      &SelectPanel::finish,   [&](int value) { qDebug() << value; });
-    connect(m_panel, SIGNAL( finish(QList<int>) ), this, SLOT( receiveResult(QList<int>)) );
+    connect(loadButton,   SIGNAL(clicked()),   this, SLOT(loadRandomPuzzle()));
+    connect(clearButton,  SIGNAL(clicked()),   this, SLOT(clearAll()));
+    connect(solveButton,  SIGNAL(clicked()),   this, SLOT(solve()));
+    connect(m_undoButton, SIGNAL(clicked()),   this, SLOT(undo()));
+    connect(m_redoButton, SIGNAL(clicked()),   this, SLOT(redo()));
+    connect(m_panel,      SIGNAL(finish(int)), this, SLOT(receiveResult(int)));
 
     int space = std::min(spacing / 10, 2);
     for (int i = 0; i < 9; i++)
@@ -189,11 +185,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     int minSize = gridSize * 10 + halfSize + 2 * margin;
     this->setMinimumSize(minSize, minSize);
-
-    Qt::WindowFlags flags = nullptr;
-    flags |= Qt::WindowMinimizeButtonHint;
-    this->setWindowFlags(flags); // 设置禁止最大化
-
 }
 
 MainWindow::~MainWindow()
@@ -203,22 +194,20 @@ MainWindow::~MainWindow()
 }
 
 
-void MainWindow::receiveResult(QList<int> result)
+void MainWindow::receiveResult(int selected)
 {
-    int r = result.at(1);
-    int c = result.at(2);
-    int selected = result.at(0);
-    int previous = m_grids[r][c]->value();
-
+    int previous = m_grids[m_sr][m_sc]->value();
     if (previous == selected)
     {
         selected = 0;
     }
 
-    changeNumber(r, c, previous, selected);
-    m_undoOps.append(Op(r, c, previous, selected));
-    m_redoOps.clear();
+    changeNumber(m_sr, m_sc, previous, selected);
+
+    m_undoOps.append(Op(m_sr, m_sc, previous, selected));
     m_undoButton->setEnabled(true);
+
+    m_redoOps.clear();
     m_redoButton->setEnabled(false);
 }
 
@@ -247,7 +236,8 @@ void MainWindow::highlight(int num, int active)
 void MainWindow::changeNumber(int r, int c, int previous, int selected)
 {
     m_grids[r][c]->setValue(selected);
-    m_grids[r][c]->clearConflict();
+
+    int num = 0;
 
     // 冲突检测，将和旧值相同的格子冲突数都减去1
     if (previous > 0)
@@ -257,7 +247,8 @@ void MainWindow::changeNumber(int r, int c, int previous, int selected)
         {
             if (m_grids[pair.first][pair.second]->value() == previous)
             {
-                m_grids[pair.first][pair.second]->removeConflict(1);
+                m_grids[pair.first][pair.second]->changeConflict(-1);
+                --num;
             }
         }
     }
@@ -265,19 +256,18 @@ void MainWindow::changeNumber(int r, int c, int previous, int selected)
     // 如果新的值不为0，将和新值相同的格子冲突数加1，再计算本身的冲突数
     if (selected > 0)
     {
-        int num = 0;
         m_counters[selected - 1]->minus();
         for (auto pair : m_controlRanges[r][c])
         {
             if (m_grids[pair.first][pair.second]->value() == selected)
             {
-                m_grids[pair.first][pair.second]->addConflict(1);
+                m_grids[pair.first][pair.second]->changeConflict(1);
                 ++num;
             }
         }
-        qDebug()<<num;
-        m_grids[r][c]->addConflict(num);
     }
+
+    m_grids[r][c]->changeConflict(num);
 }
 
 void MainWindow::clearGrid(int r, int c)
@@ -319,15 +309,16 @@ void MainWindow::clearAll()
     }
 
     m_undoOps.clear();
-    m_redoOps.clear();
     m_undoButton->setEnabled(false);
+
+    m_redoOps.clear();
     m_redoButton->setEnabled(false);
 }
 
 
 void MainWindow::smartAssistOff(int r, int c)
 {
-    for (auto pair : m_controlRanges[r][c])
+    for (auto &pair : m_controlRanges[r][c])
     {
         m_grids[pair.first][pair.second]->revealButton();
     }
@@ -336,7 +327,7 @@ void MainWindow::smartAssistOff(int r, int c)
 
 void MainWindow::smartAssistOn(int r, int c)
 {
-    for (auto pair : m_controlRanges[r][c])
+    for (auto &pair : m_controlRanges[r][c])
     {
         m_grids[pair.first][pair.second]->hideButton();
     }
@@ -347,8 +338,8 @@ void MainWindow::smartAssistOn(int r, int c)
 
 // 随机生成谜题
 void MainWindow::loadRandomPuzzle()
-{
-    QFile file("E:/test.txt");
+{    
+    QFile file(":/sudoku/puzzles/001.txt");
     if(!file.open(QFile::ReadOnly))
     {
         return;
@@ -356,7 +347,7 @@ void MainWindow::loadRandomPuzzle()
 
     QVector<int> counts(10, 0);
 
-    int num;
+    int val;
     QString array = file.readAll();
     QStringList rows = array.split('\n');
     for (int r = 0; r < 9; r++)
@@ -364,10 +355,10 @@ void MainWindow::loadRandomPuzzle()
         QStringList cols = rows.at(r).split(' ');
         for (int c = 0; c < 9; c++)
         {
-            num = cols.at(c).toInt();
-            m_grids[r][c]->setEnabled(num == 0);  // 值为0表示待填充，即可操作
-            m_grids[r][c]->setValue(num);
-            ++counts[num];
+            val = cols.at(c).toInt();
+            m_grids[r][c]->setEnabled(val == 0);  // 值为0表示待填充，即可操作
+            m_grids[r][c]->setValue(val);
+            ++counts[val];
         }
     }
 
@@ -384,7 +375,7 @@ void MainWindow::loadRandomPuzzle()
 // 没有结果时的处理
 void MainWindow::solve()
 {
-    std::vector<std::vector<int>> puzzle(9, std::vector<int>(9, 0));
+    QVector<QVector<int>> puzzle(9, QVector<int>(9, 0));
     for (int r = 0; r < 9; r++)
     {
         for (int c = 0; c < 9; c++)
@@ -414,10 +405,7 @@ void MainWindow::redo()
     changeNumber(op.row, op.col, op.before, op.after);
 
     m_undoButton->setEnabled(true);
-    if (m_redoOps.size() == 0)
-    {
-        m_redoButton->setEnabled(false);
-    }
+    m_undoButton->setEnabled(m_redoOps.size() > 0);
 }
 
 void MainWindow::undo()
@@ -427,8 +415,5 @@ void MainWindow::undo()
     changeNumber(op.row, op.col, op.after, op.before);
 
     m_redoButton->setEnabled(true);
-    if (m_undoOps.size() == 0)
-    {
-        m_undoButton->setEnabled(false);
-    }
+    m_redoButton->setEnabled(m_undoOps.size() > 0);
 }

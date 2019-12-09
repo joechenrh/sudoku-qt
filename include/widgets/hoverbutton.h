@@ -21,7 +21,7 @@ class HoverButton : public QPushButton
     Q_OBJECT
 
 public:
-    HoverButton(QWidget *parent = NULL);
+    HoverButton(QWidget *parent = nullptr);
 
     /**
      * @brief 隐藏当前控件

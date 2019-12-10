@@ -49,7 +49,7 @@ public:
     /**
      * @brief highlight 高亮/取消高亮选中的数字
      * @param num 所选数字
-     * @param active 开启或关闭
+     * @param active 开启或关闭, true表示开启
      */
     void highlight(int num, int active);
 
@@ -119,9 +119,14 @@ private:
      */
     void changeNumber(int r, int c, int previous, int selected);
 
-
+    /**
+     * @brief 鼠标点击位置所在行
+     */
     int m_sr;
 
+    /**
+     * @brief 鼠标点击位置所在列
+     */
     int m_sc;
 
     /**

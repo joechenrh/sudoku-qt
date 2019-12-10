@@ -57,14 +57,14 @@ public:
     void leave();
 
     /**
-     * @brief hideButton
+     * @brief 显示背景
      */
-    void hideButton();
+    void showBackground();
 
     /**
-     * @brief revealButton
+     * @brief 隐藏背景
      */
-    void revealButton();
+    void hideBackground();
 
     /**
      * @brief 调整冲突数

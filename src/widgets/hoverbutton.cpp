@@ -2,18 +2,19 @@
 
 #include <QGraphicsEffect>
 
-const int duration = 150;
+const int duration = 200;
+const double fullOpacity = 0.999;
 
 HoverButton::HoverButton(QWidget *parent) : QPushButton(parent)
 {
     QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect;
-    opacityEffect->setOpacity(0.999);
+    opacityEffect->setOpacity(fullOpacity);
     this->setGraphicsEffect(opacityEffect);
 
     m_animation = new QPropertyAnimation(opacityEffect, "opacity", this);
     m_animation->setDuration(duration);
-    m_animation->setStartValue(0.999);
-    m_animation->setEasingCurve(QEasingCurve::Linear);
+    m_animation->setStartValue(opacityEffect->opacity());
+    m_animation->setEasingCurve(QEasingCurve::InOutQuad);
 }
 
 void HoverButton::hide()
@@ -36,7 +37,7 @@ void HoverButton::reveal()
     }
 
     m_animation->setStartValue(m_animation->currentValue());
-    m_animation->setEndValue(0.99);
+    m_animation->setEndValue(fullOpacity);
     m_animation->start();
 }
 

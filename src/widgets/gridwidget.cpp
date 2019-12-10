@@ -9,8 +9,8 @@
 #define BORDER_COLOR_ENABLED "#FB78A5"        // border color when enabled
 #define BORDER_COLOR_UNABLED "#5F5F5F"        // border color when disabled
 
-#define BORDER_RADIUS_ENABLED 3               // border radius when no conflict
-#define BORDER_RADIUS_UNABLED 0               // border radius when have conflict
+#define BORDER_RADIUS_CONFLICT 3              // border radius when have conflict
+#define BORDER_RADIUS_NOCONFLICT 0            // border radius when no conflict
 
 #define FONT_COLOR_UNABLED "#5F5F5F"          // font color when disabled
 #define FONT_COLOR_HOVERED "#FFFFFF"          // font color when enabled and mouse hovered
@@ -22,7 +22,7 @@
 
 
 GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
-    : QWidget(parent), m_value(0), m_numConflict(1)
+    : QWidget(parent), m_value(0), m_numConflict(0)
 {
     // 设置单元格大小和阴影
     QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect(this);
@@ -36,42 +36,46 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
     QString gridStyle = QString("background-color:%1;border:1px solid #C9C9C9;");
     if ((row == 0 || row == 8) && (col == 0 || col == 8))
     {
-        QString borderStyle = "border-%1-%2-radius:15px;";
-        gridStyle += borderStyle.arg(row == 0 ? "top" : "bottom")
-                                .arg(col == 0 ? "left" : "right");
+        QString borderStyle = "border-%1-%2-radius:%3px;";
+        gridStyle += borderStyle.arg(row == 0 ? "top"  : "bottom")
+                                .arg(col == 0 ? "left" : "right" )
+                                .arg(size / 5);
     }
-
-    int nIndex = QFontDatabase::addApplicationFont(":/sudoku/fonts/ARLRDBD.TTF");
-    QStringList strList(QFontDatabase::applicationFontFamilies(nIndex));
 
     // 底层的背景
     QLabel *background = new QLabel(this);
-    background->setStyleSheet(gridStyle.arg(BACKGROUND_COLOR_HOVERED));
     background->setFixedSize(size, size);
+    background->setStyleSheet(gridStyle.arg(BACKGROUND_COLOR_HOVERED));
+    background->setAttribute(Qt::WA_StyledBackground);
+    //this->setStyleSheet(gridStyle.arg(BACKGROUND_COLOR_HOVERED));
+    //this->setAttribute(Qt::WA_StyledBackground);
 
     m_foreground = new HoverButton(this);
     m_foreground->setStyleSheet(gridStyle.arg(BACKGROUND_COLOR_UNHOVERED));
     m_foreground->setFixedSize(size, size);
 
-    m_marker = new GridMarker(size, this);
+    m_marker = new GridMarker(size);
+    m_marker->setParent(this);
     m_marker->setGeometry(QRect(size / 2, size / 2, 0, 0));
 
-    int bias = static_cast<int>(size * 0.125);
+    int buttonMargin = static_cast<int>(size / 5 - 5);
+    int buttonSize = size - 2 * buttonMargin;
     m_buttonStyle = QString("border-radius:%1px;border:%2px solid %3;"
-                            "background-color:transparent;color:%4").arg(size / 2 - bias);
+                            "background-color:transparent;color:%4").arg(buttonSize / 2);
 
     // 初始风格
-    m_borderRadius = BORDER_RADIUS_UNABLED;
+    m_borderRadius = BORDER_RADIUS_NOCONFLICT;
     m_borderColor  = BORDER_COLOR_ENABLED;
     m_fontColor    = FONT_COLOR_NORMAL;
 
-    QFont buttonFont = QFont(strList.at(0), 25);
-    buttonFont.setBold(true);
+    int nIndex = QFontDatabase::addApplicationFont(":/sudoku/fonts/ARLRDBD.TTF");
+    QStringList strList(QFontDatabase::applicationFontFamilies(nIndex));
+    QFont buttonFont = QFont(strList.at(0), size / 3);
 
     m_button = new HoverButton(this);
     m_button->setFont(buttonFont);
-    m_button->setFixedSize(size - 2 * bias, size - 2 * bias);
-    m_button->move(bias, bias);
+    m_button->setFixedSize(buttonSize, buttonSize);
+    m_button->move(buttonMargin, buttonMargin);
     m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
 
     connect(m_button, SIGNAL(clicked()),      this, SLOT(buttonClicked()));
@@ -105,14 +109,14 @@ int GridWidget::value() const
 
 void GridWidget::changeConflict(int num)
 {
-    if (m_numConflict == 1 && num > 0)
+    if (m_numConflict == 0 && num > 0)
     {
-        m_borderRadius = BORDER_RADIUS_ENABLED;
+        m_borderRadius = BORDER_RADIUS_CONFLICT;
         m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
     }
-    else if (m_numConflict > 1 && m_numConflict + num == 1)
+    else if (m_numConflict > 0 && m_numConflict + num == 0)
     {
-        m_borderRadius = BORDER_RADIUS_UNABLED;
+        m_borderRadius = BORDER_RADIUS_NOCONFLICT;
         m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
     }
 
@@ -121,8 +125,8 @@ void GridWidget::changeConflict(int num)
 
 void GridWidget::clearConflict()
 {
-    m_numConflict = 1;
-    m_borderRadius = BORDER_RADIUS_UNABLED;
+    m_numConflict = 0;
+    m_borderRadius = BORDER_RADIUS_NOCONFLICT;
     m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
 }
 
@@ -148,12 +152,12 @@ void GridWidget::leaveEvent(QEvent*)
 }
 
 
-void GridWidget::hideButton()
+void GridWidget::showBackground()
 {
     m_foreground->hide();
 }
 
-void GridWidget::revealButton()
+void GridWidget::hideBackground()
 {
     m_foreground->reveal();
 }

@@ -27,15 +27,24 @@ public:
 
     /**
      * @brief 打开控件，同时触发动画效果
-     * @return 打开结果
+     * @param x 打开时所在的x坐标
+     * @param y 打开时所在的y坐标
+     * @details 如果在调用打开时，控件正在关闭，则会等待控件关闭后，再打开
      */
-    void show();
+    void show(int x, int y);
 
     /**
      * @brief 关闭控件，同时触发动画效果
-     * @return 关闭结果
+     * @return 是否成功关闭
+     * @details 如果在调用隐藏时，控件正在打开，则不会进行任何操作，并返回失败
      */
-    void hide();
+    bool hide();
+
+    /**
+     * @brief isVisible
+     * @return
+     */
+    bool isVisible() const;
 
     /**
      * @brief setSelected 设置初始值
@@ -44,15 +53,19 @@ public:
     void setSelected(QList<int> list);
 
 private:
-    /**
-     * @brief 绘制控件的掩膜
-     */
-    void drawMask();
+    QRect m_minSize;
+
+    QRect m_maxSize;
 
     /**
-     * @brief 记录多选项的数组，暂未使用
+     * @brief 记录多选的数据，暂未使用
      */
     QVector<int> m_selected;
+
+    /**
+     * @brief 控制控件显示和关闭的动画效果
+     */
+    QPropertyAnimation *m_animation;
 
     /**
      * @brief 九宫格的九个按钮
@@ -60,14 +73,14 @@ private:
     QVector<HoverButton*> m_buttons;
 
     /**
-     * @brief 用于触发QPropertyAnimation，动态绘制mask的的控件，无其他作用
+     * @brief 面板的背景
      */
-    QLabel *m_dummylabel;
+    QLabel *m_background;
 
     /**
-     * @brief 控制控件显示和关闭的动画效果
+     * @brief 面板的前景，包含了九个按钮
      */
-    QPropertyAnimation *m_animation;
+    QWidget *m_container;
 
 signals:
     /**

@@ -34,7 +34,7 @@ Counter::Counter(int num, int size, QWidget *parent)
     m_cntStyle = baseStyle.arg(2 * lr).arg(lr).arg(CNT_FONT_COLOR);
 
     m_cntLabel = new QLabel(this);
-    m_cntLabel->setText("9");
+    m_cntLabel->setText(QString::number(m_count));
     m_cntLabel->setFont(cntFont);
     m_cntLabel->setStyleSheet(m_cntStyle.arg(CNT_COLOR_UNHOVERED));
     m_cntLabel->setAlignment(Qt::AlignCenter);
@@ -50,19 +50,19 @@ Counter::Counter(int num, int size, QWidget *parent)
     m_numLabel->move(size - 2 * sr, 0);
 
     m_cntOpacity = new QGraphicsOpacityEffect;
-    m_cntOpacity->setOpacity(1.0);
+    m_cntOpacity->setOpacity(0.99);
     m_cntLabel->setGraphicsEffect(m_cntOpacity);
 }
 
 
-void Counter::enterEvent(QEvent *e)
+void Counter::enterEvent(QEvent*)
 {
     m_cntLabel->setStyleSheet(m_cntStyle.arg(CNT_COLOR_HOVERED));
 
     emit hovered();
 }
 
-void Counter::leaveEvent(QEvent *e)
+void Counter::leaveEvent(QEvent*)
 {
     m_cntLabel->setStyleSheet(m_cntStyle.arg(CNT_COLOR_UNHOVERED));
 
@@ -93,6 +93,8 @@ void Counter::setCount(int value)
 
 void Counter::updateOpacity()
 {
+    // 下面这句话没有效果
+    // m_cntLabel->setWindowOpacity(m_count < 1 ? 0.5 : 0.999);
     m_cntOpacity->setOpacity(m_count < 1 ? 0.5 : 1.0);
-    m_numLabel->setVisible(m_count < 1 ? 0.0 : 1.0);
+    m_numLabel->setVisible(m_count < 1 ? false : true);
 }

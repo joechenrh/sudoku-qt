@@ -10,6 +10,7 @@
 #include <QLabel>
 #include <QPainter>
 #include <QPropertyAnimation>
+#include <QGraphicsOpacityEffect>
 
 /**
  * @brief The GridMarker class 鼠标进入九宫格时显示的圆形效果由这个控件绘制

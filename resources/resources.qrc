@@ -2,10 +2,11 @@
     <qresource prefix="/sudoku/fonts">
         <file>ARLRDBD.TTF</file>
     </qresource>
-    <qresource prefix="/sudoku/puzzles">
-        <file>001.txt</file>
-    </qresource>
     <qresource prefix="/sudoku/styles">
         <file>style1.json</file>
+    </qresource>
+    <qresource prefix="/sudoku/puzzles">
+        <file>1.txt</file>
+        <file>2.txt</file>
     </qresource>
 </RCC>

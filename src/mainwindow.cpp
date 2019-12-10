@@ -1,8 +1,8 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include <vector>
 #include <QDir>
+#include <QTime>
 #include <QDebug>
 #include <QFontDatabase>
 #include <QGraphicsDropShadowEffect>
@@ -11,7 +11,7 @@
 
 #define margin 10              // 四周的边缘宽度
 #define gridSize 75            // 格子的大小
-#define halfSize gridSize / 2  // 半个格子的大小，即按钮的高度
+#define halfSize gridSize / 2  // 半个格子的大小，也是按钮的高度
 #define spacing 5              // 九宫格之间的间隔
 
 QPushButton* createButton(QString text)
@@ -84,6 +84,7 @@ MainWindow::MainWindow(QWidget *parent) :
                 smartAssistOn(r, c);
                 grid->enter();
             });
+
             connect(grid, &GridWidget::leaved,       [=]()
             {
                 if (!grid->isEnabled() || m_panel->isVisible())
@@ -93,30 +94,37 @@ MainWindow::MainWindow(QWidget *parent) :
                 smartAssistOff(r, c);
                 grid->leave();
             });
+
             connect(grid, &GridWidget::rightClicked, [=]()
             {
                 if (m_panel->isVisible())
                 {
-                    m_grids[m_sr][m_sc]->hideButton();
-                    smartAssistOff(m_sr, m_sc);
-                    m_panel->hide();
+                    // 尝试关闭
+                    if( m_panel->hide())
+                    {
+                        m_grids[m_sr][m_sc]->leave();
+                        smartAssistOff(m_sr, m_sc);
+                    }
                     return;
                 }
                 clearGrid(r, c);
             });
+
             connect(grid, &GridWidget::clicked,      [=](){
                 if (m_panel->isVisible())
                 {
-                    m_grids[m_sr][m_sc]->hideButton();
-                    smartAssistOff(m_sr, m_sc);
-                    m_panel->hide();
-                    return;
+                    // 尝试关闭
+                    if( m_panel->hide())
+                    {
+                        m_grids[m_sr][m_sc]->leave();
+                        smartAssistOff(m_sr, m_sc);
+                    }
+                    smartAssistOn(r, c);
+                    grid->enter();
                 }
-                grid->leave();
                 m_sr = r;
                 m_sc = c;
-                m_panel->move(grid->geometry().x(), grid->geometry().y());
-                m_panel->show();
+                m_panel->show(grid->geometry().x(), grid->geometry().y());
             });
         }
     }
@@ -144,25 +152,27 @@ MainWindow::MainWindow(QWidget *parent) :
     m_undoButton->setFont(QFont(strList.at(0), 12));
     m_undoButton->move(margin + gridSize * 9 + halfSize, margin + gridSize * 9 + halfSize);
     m_undoButton->setFixedSize(halfSize, gridSize);
-    m_undoButton->setStyleSheet("QWidget{background-color:#FFFFFF;color:#5F5F5F;"
-                                "border-top-left-radius:37px;border-bottom-left-radius:37px;}"
-                                "QPushButton:pressed{background-color:rgb(222, 222, 222);}"
-                                "QPushButton:!enabled{background-color:rgb(200, 200, 200);}");
+    m_undoButton->setStyleSheet(QString("QWidget{background-color:#FFFFFF;color:#5F5F5F;"
+                                        "border-top-left-radius:%1px;border-bottom-left-radius:%1px;}"
+                                        "QPushButton:hover{background-color:rgb(236, 236, 236);}"
+                                        "QPushButton:pressed{background-color:rgb(222, 222, 222);}"
+                                        "QPushButton:!enabled{background-color:rgb(200, 200, 200);}")
+                                        .arg(gridSize / 5));
 
     m_redoButton = new QPushButton(">");
     m_redoButton->setParent(this);
     m_redoButton->setFont(QFont(strList.at(0), 12));
     m_redoButton->move(margin + gridSize * 10, margin + gridSize * 9 + halfSize);
     m_redoButton->setFixedSize(halfSize, gridSize);
-    m_redoButton->setStyleSheet("QWidget{background-color:#FFFFFF;color:#5F5F5F;"
-                                "border-top-right-radius:37px;border-bottom-right-radius:37px;}"
-                                "QPushButton:hover{background-color:rgb(236, 236, 236);}"
-                                "QPushButton:pressed{background-color:rgb(222, 222, 222);}"
-                                "QPushButton:!enabled{background-color:rgb(200, 200, 200);}");
+    m_redoButton->setStyleSheet(QString("QWidget{background-color:#FFFFFF;color:#5F5F5F;"
+                                        "border-top-right-radius:%1px;border-bottom-right-radius:%1px;}"
+                                        "QPushButton:hover{background-color:rgb(236, 236, 236);}"
+                                        "QPushButton:pressed{background-color:rgb(222, 222, 222);}"
+                                        "QPushButton:!enabled{background-color:rgb(200, 200, 200);}")
+                                        .arg(gridSize / 5));
 
     m_panel = new SelectPanel(gridSize);
     m_panel->setParent(this);
-    m_panel->hide();
 
     connect(loadButton,   SIGNAL(clicked()),   this, SLOT(loadRandomPuzzle()));
     connect(clearButton,  SIGNAL(clicked()),   this, SLOT(clearAll()));
@@ -197,6 +207,7 @@ MainWindow::~MainWindow()
 void MainWindow::receiveResult(int selected)
 {
     int previous = m_grids[m_sr][m_sc]->value();
+    // 选择和之前相同表示清空当前格子
     if (previous == selected)
     {
         selected = 0;
@@ -221,11 +232,11 @@ void MainWindow::highlight(int num, int active)
             {
                 if (active)
                 {
-                    m_grids[r][c]->hideButton();
+                    m_grids[r][c]->showBackground();
                 }
                 else
                 {
-                    m_grids[r][c]->revealButton();
+                    m_grids[r][c]->hideBackground();
                 }
 
             }
@@ -273,6 +284,7 @@ void MainWindow::changeNumber(int r, int c, int previous, int selected)
 void MainWindow::clearGrid(int r, int c)
 {
     int previous = m_grids[r][c]->value();
+    // 之前也为空就什么也不做
     if (previous == 0)
     {
         return;
@@ -318,28 +330,42 @@ void MainWindow::clearAll()
 
 void MainWindow::smartAssistOff(int r, int c)
 {
+    qDebug() << "Off";
     for (auto &pair : m_controlRanges[r][c])
     {
-        m_grids[pair.first][pair.second]->revealButton();
+        m_grids[pair.first][pair.second]->hideBackground();
     }
-    m_grids[r][c]->revealButton();
+    m_grids[r][c]->hideBackground();
 }
 
 void MainWindow::smartAssistOn(int r, int c)
 {
+    qDebug() << "On";
     for (auto &pair : m_controlRanges[r][c])
     {
-        m_grids[pair.first][pair.second]->hideButton();
+        m_grids[pair.first][pair.second]->showBackground();
     }
-    m_grids[r][c]->hideButton();
+    m_grids[r][c]->showBackground();
 }
-
 
 
 // 随机生成谜题
 void MainWindow::loadRandomPuzzle()
 {    
-    QFile file(":/sudoku/puzzles/001.txt");
+    // 统计文件数量
+    QDir *dir = new QDir(":/sudoku/puzzles");
+    QStringList filter;
+    QList<QFileInfo> *fileInfo = new QList<QFileInfo>(dir->entryInfoList(filter));
+    int count = fileInfo->count();  //文件个数
+
+    // 随机选取文件
+    QTime time;
+    time= QTime::currentTime();
+    qsrand(time.msec() + time.second() * 1000);
+    int n = qrand() % count;
+    QString fileName = QString(":/sudoku/puzzles/%1.txt").arg(n + 1);
+
+    QFile file(fileName);
     if(!file.open(QFile::ReadOnly))
     {
         return;

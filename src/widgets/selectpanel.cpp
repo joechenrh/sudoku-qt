@@ -9,7 +9,7 @@
 SelectPanel::SelectPanel(int size, QWidget *parent)
     : QWidget(parent)
 {
-    m_minSize = QRect(size / 5, size / 5, size - size / 5 * 2, size - size / 5 * 2);
+    m_minSize = QRect(size / 3, size / 3, size - size / 3 * 2, size - size / 3 * 2);
     m_maxSize = QRect(0, 0, size, size);
 
     m_buttons.resize(9);
@@ -23,7 +23,7 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
     QFont hoverFont = QFont(strList.at(0), 16);
     hoverFont.setBold(true);
 
-    QFont normalFont = QFont(strList.at(0), 12);
+    QFont normalFont = QFont(strList.at(0), 14);
 
     QString enterStylesheet = "QWidget{color:#FAFAFA; background-color:transparent; border:0px solid black;}";
     QString leaveStylesheet = "QWidget{color:#FBDFE8; background-color:transparent; border:0px solid black;}";
@@ -96,7 +96,7 @@ bool SelectPanel::hide()
 
     m_container->hide(); 
 
-    m_animation->setEasingCurve(QEasingCurve::InCubic);
+    m_animation->setEasingCurve(QEasingCurve::InOutCubic);
     m_animation->setStartValue(m_maxSize);
     m_animation->setEndValue(m_minSize);
     m_animation->start();

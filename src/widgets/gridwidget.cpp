@@ -70,7 +70,7 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
 
     int nIndex = QFontDatabase::addApplicationFont(":/sudoku/fonts/ARLRDBD.TTF");
     QStringList strList(QFontDatabase::applicationFontFamilies(nIndex));
-    QFont buttonFont = QFont(strList.at(0), size / 3);
+    QFont buttonFont = QFont(strList.at(0), size / 4);
 
     m_button = new HoverButton(this);
     m_button->setFont(buttonFont);

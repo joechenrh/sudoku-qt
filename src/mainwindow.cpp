@@ -9,8 +9,8 @@
 
 #include "sudokusolver.h"
 
-#define margin 10              // 四周的边缘宽度
-#define gridSize 75            // 格子的大小
+#define margin 15              // 四周的边缘宽度
+#define gridSize 80            // 格子的大小
 #define halfSize gridSize / 2  // 半个格子的大小，也是按钮的高度
 #define spacing 5              // 九宫格之间的间隔
 
@@ -100,10 +100,12 @@ MainWindow::MainWindow(QWidget *parent) :
                 if (m_panel->isVisible())
                 {
                     // 尝试关闭
-                    if( m_panel->hide())
+                    if (m_panel->hide())
                     {
                         m_grids[m_sr][m_sc]->leave();
                         smartAssistOff(m_sr, m_sc);
+                        smartAssistOn(r, c);
+                        grid->enter();
                     }
                     return;
                 }
@@ -118,9 +120,9 @@ MainWindow::MainWindow(QWidget *parent) :
                     {
                         m_grids[m_sr][m_sc]->leave();
                         smartAssistOff(m_sr, m_sc);
+                        smartAssistOn(r, c);
+                        grid->enter();
                     }
-                    smartAssistOn(r, c);
-                    grid->enter();
                 }
                 m_sr = r;
                 m_sc = c;
@@ -330,7 +332,6 @@ void MainWindow::clearAll()
 
 void MainWindow::smartAssistOff(int r, int c)
 {
-    qDebug() << "Off";
     for (auto &pair : m_controlRanges[r][c])
     {
         m_grids[pair.first][pair.second]->hideBackground();
@@ -340,7 +341,6 @@ void MainWindow::smartAssistOff(int r, int c)
 
 void MainWindow::smartAssistOn(int r, int c)
 {
-    qDebug() << "On";
     for (auto &pair : m_controlRanges[r][c])
     {
         m_grids[pair.first][pair.second]->showBackground();
@@ -431,7 +431,7 @@ void MainWindow::redo()
     changeNumber(op.row, op.col, op.before, op.after);
 
     m_undoButton->setEnabled(true);
-    m_undoButton->setEnabled(m_redoOps.size() > 0);
+    m_redoButton->setEnabled(m_redoOps.size() > 0);
 }
 
 void MainWindow::undo()
@@ -441,5 +441,5 @@ void MainWindow::undo()
     changeNumber(op.row, op.col, op.after, op.before);
 
     m_redoButton->setEnabled(true);
-    m_redoButton->setEnabled(m_undoOps.size() > 0);
+    m_undoButton->setEnabled(m_undoOps.size() > 0);
 }

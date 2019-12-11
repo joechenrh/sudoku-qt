@@ -170,7 +170,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(solveButton,  SIGNAL(clicked()),   this, SLOT(solve()));
     connect(m_undoButton, SIGNAL(clicked()),   this, SLOT(undo()));
     connect(m_redoButton, SIGNAL(clicked()),   this, SLOT(redo()));
-    connect(m_panel,      &SelectPanel::finish, [&](int selected){m_grids[m_sr][m_sc]->enter(); receiveResult(selected);});
+    connect(m_panel,      &SelectPanel::finish, [&](int selected){ m_grids[m_sr][m_sc]->enter(); receiveResult(selected);});
 
     int space = std::min(spacing / 10, 2);
     for (int i = 0; i < 9; i++)

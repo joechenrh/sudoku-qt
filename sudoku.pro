@@ -23,19 +23,19 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 
-INCLUDEPATH += include \
-               include\widgets
-
+INCLUDEPATH += \
+    include \
+    include/widgets
 
 SOURCES += \
-    include/widgets/panelbase.cpp \
         main.cpp \
     src/mainwindow.cpp \
     src/widgets/hoverbutton.cpp \
     src/widgets/selectpanel.cpp \
     src/widgets/gridwidget.cpp \
     src/widgets/gridmarker.cpp \
-    src/widgets/counter.cpp
+    src/widgets/counter.cpp \
+    src/widgets/panelbase.cpp
 
 HEADERS += \
     include/sudokusolver.h \
@@ -48,7 +48,7 @@ HEADERS += \
     include/widgets/counter.h
 
 FORMS += \
-        ui\mainwindow.ui
+    ui/mainwindow.ui
 
 CONFIG += C++11
 

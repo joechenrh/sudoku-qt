@@ -123,13 +123,17 @@ private:
      * @brief 鼠标点击位置所在行
      */
     int m_sr;
-    int m_r;
 
     /**
      * @brief 鼠标点击位置所在列
      */
     int m_sc;
-    int m_c;
+
+    /**
+     * @brief 是否在切换状态
+     * @details 由于在面板切换时存在一瞬间可以触发hover，所以添加一个状态来判断
+     */
+    bool m_switching;
 
     /**
      * @brief 储存每个数组单元格的影响范围

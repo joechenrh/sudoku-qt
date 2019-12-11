@@ -37,7 +37,7 @@ QPushButton* createButton(QString text)
 }
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent), ui(new Ui::MainWindow), m_sr(0), m_r(-1), m_sc(0), m_c(-1)
+    QMainWindow(parent), ui(new Ui::MainWindow), m_sr(-1), m_sc(-1), m_switching(true)
 {
     // 窗口设置
     QColor color = QColor("#DDE2E5");
@@ -77,8 +77,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
             connect(grid, &GridWidget::hovered,      [=]()
             {
-                m_r = r; m_c = c;
-                if (!grid->isEnabled() || m_panel->isVisible())
+                if (!m_switching || !grid->isEnabled() || m_panel->isVisible())
                 {
                     return;
                 }
@@ -88,30 +87,43 @@ MainWindow::MainWindow(QWidget *parent) :
 
             connect(grid, &GridWidget::leaved,       [=]()
             {
-                m_r = m_c = -1;
                 if (!grid->isEnabled() || m_panel->isVisible())
                 {
                     return;
                 }
+                m_sr = m_sc = -1;
                 smartAssistOff(r, c);
                 grid->leave();
             });
+
+            // 问题1：取消后立刻移到被取消的单元格，marker会出现，原因：off比hover里的on晚触发
+            // 问题2：面板显示时，左击附近格子再立刻移入之前的格子，会出现marker | 通过添加m_switching解决
+            // 问题3：点选数字后迅速移开，当前格子还会有marker
 
             connect(grid, &GridWidget::rightClicked, [=]()
             {
                 if (m_panel->isVisible() && m_panel->hide())
                 {
-                    smartAssistOff(m_sr, m_sc);
+                    if (m_sr >= 0 && m_sc >= 0)
+                    {
+                        smartAssistOff(m_sr, m_sc);
+                    }
                     return;
                 }
                 clearGrid(r, c);
             });
 
             connect(grid, &GridWidget::clicked, [=](){
-                if (m_panel->show(grid->geometry().x(), grid->geometry().y()))
+                m_switching = false;
+                if (!m_panel->isVisible() || m_panel->hide())
                 {
-                    m_grids[r][c]->leave();
-                    smartAssistOff(m_sr, m_sc);
+                    m_switching = true;;
+                    m_panel->show(grid->geometry().x(), grid->geometry().y());
+                    if (m_sr >= 0 && m_sc >= 0)
+                    {
+                        smartAssistOff(m_sr, m_sc);
+                    }
+                    grid->leave();
                     smartAssistOn(r, c);
                     m_sr = r;
                     m_sc = c;

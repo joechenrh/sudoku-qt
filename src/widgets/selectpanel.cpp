@@ -6,7 +6,7 @@
 #include <QEventLoop>
 #include <QGraphicsOpacityEffect>
 
-const int duration = 250;
+const int duration = 200;
 
 SelectPanel::SelectPanel(int size, QWidget *parent)
     : QWidget(parent)
@@ -66,10 +66,10 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
     m_showAnimation->setEndValue(maxSize);
 
     m_hideAnimation = new QPropertyAnimation(m_background, "geometry");
-    m_hideAnimation->setEasingCurve(QEasingCurve::OutCubic);
-    m_hideAnimation->setDuration(duration);
-    m_hideAnimation->setStartValue(maxSize);
-    m_hideAnimation->setEndValue(minSize);
+    m_hideAnimation->setEasingCurve(QEasingCurve::OutQuad);
+    m_hideAnimation->setDuration(125);
+    m_hideAnimation->setStartValue(QRect(0, 0, size, size));
+    m_hideAnimation->setEndValue(QRect(size / 2 - 4, size / 2 - 4, 9, 9));
 }
 
 

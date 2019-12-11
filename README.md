@@ -30,7 +30,7 @@ After checking out the project, the simplest way to build and run is through Qt 
 ## TODO
 
 - [x] Add Redo/Undo
-- [ ] Add animation to select panel
+- [x] Add animation to select panel
 - [ ] support multiple choice
 - [ ] create puzzle from images
 - [ ] timer

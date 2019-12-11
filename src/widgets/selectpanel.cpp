@@ -6,16 +6,17 @@
 #include <QEventLoop>
 #include <QGraphicsOpacityEffect>
 
+const int duration = 250;
+
 SelectPanel::SelectPanel(int size, QWidget *parent)
     : QWidget(parent)
 {
-    m_minSize = QRect(size / 3, size / 3, size - size / 3 * 2, size - size / 3 * 2);
-    m_maxSize = QRect(0, 0, size, size);
-
-    m_buttons.resize(9);
-    m_selected.resize(9);
     this->setFixedSize(size, size);
     QWidget::hide();
+
+    // TODO: 大小的设置需要根据其他控件的大小来设置
+    QRect minSize = QRect(size / 2, size / 2, 1, 1);
+    QRect maxSize = QRect(-size / 4, -size / 4, size + size / 4 * 2, size + size / 4 * 2);
 
     int nIndex = QFontDatabase::addApplicationFont(":/sudoku/fonts/ARLRDBD.TTF");
     QStringList strList(QFontDatabase::applicationFontFamilies(nIndex));
@@ -28,14 +29,16 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
     QString enterStylesheet = "QWidget{color:#FAFAFA; background-color:transparent; border:0px solid black;}";
     QString leaveStylesheet = "QWidget{color:#FBDFE8; background-color:transparent; border:0px solid black;}";
 
-    m_background = new QLabel(this);
-    m_background->setStyleSheet("background-color:#FB78A5;");
-    m_background->setGeometry(m_minSize);
+    m_background = new PanelBase(size, this);
+    m_background->setColor("#FB78A5");
+    m_background->setGeometry(minSize);
 
     m_container = new QWidget(this);
     m_container->setFixedSize(size, size);
     m_container->hide();
 
+    m_buttons.resize(9);
+    m_selected.resize(9);
     int buttonSize = size / 3;
     for( int r = 0; r < 3; r++)
     {
@@ -56,23 +59,49 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
         }
     }
 
-    m_animation = new QPropertyAnimation(m_background, "geometry");
-    m_animation->setDuration(150);
-    m_animation->setStartValue(m_minSize);
-    m_animation->setEndValue(m_maxSize);
+    m_showAnimation = new QPropertyAnimation(m_background, "geometry");
+    m_showAnimation->setEasingCurve(QEasingCurve::OutCubic);
+    m_showAnimation->setDuration(duration);
+    m_showAnimation->setStartValue(minSize);
+    m_showAnimation->setEndValue(maxSize);
+
+    m_hideAnimation = new QPropertyAnimation(m_background, "geometry");
+    m_hideAnimation->setEasingCurve(QEasingCurve::OutCubic);
+    m_hideAnimation->setDuration(duration);
+    m_hideAnimation->setStartValue(maxSize);
+    m_hideAnimation->setEndValue(minSize);
 }
+
 
 bool SelectPanel::isVisible() const
 {
-    return m_container->isVisible();
+    return QWidget::isVisible();
 }
 
-void SelectPanel::show(int x, int y)
+bool SelectPanel::isHiding() const
 {
-    if (m_animation->state() != QAbstractAnimation::Stopped)
+    return m_hideAnimation->state() == QAbstractAnimation::Running;
+}
+
+bool SelectPanel::isShowing() const
+{
+    return m_showAnimation->state() == QAbstractAnimation::Running;
+}
+
+
+bool SelectPanel::show(int x, int y)
+{
+    // 如果正在打开，则什么也不做
+    if (m_showAnimation->state() != QAbstractAnimation::Stopped)
+    {
+        return false;
+    }
+
+    // 如果正在关闭，则等待关闭完成
+    if (m_hideAnimation->state() != QAbstractAnimation::Stopped)
     {
         QEventLoop eventLoop;
-        connect(m_animation, SIGNAL(finished()), &eventLoop, SLOT(quit()));
+        connect(m_hideAnimation, SIGNAL(finished()), &eventLoop, SLOT(quit()));
         eventLoop.exec();
     }
 
@@ -80,32 +109,27 @@ void SelectPanel::show(int x, int y)
 
     QWidget::show();
     m_container->show();
-
-    m_animation->setEasingCurve(QEasingCurve::OutCubic);
-    m_animation->setStartValue(m_minSize);
-    m_animation->setEndValue(m_maxSize);
-    m_animation->start();
+    m_showAnimation->start();
+    return true;
 }
 
 bool SelectPanel::hide()
 {
-    if (m_animation->state() != QAbstractAnimation::Stopped)
+    // 如果正在打开或关闭，则直接退出
+    if (m_showAnimation->state() != QAbstractAnimation::Stopped ||
+        m_hideAnimation->state() != QAbstractAnimation::Stopped)
     {
         return false;
     }
 
     m_container->hide(); 
-
-    m_animation->setEasingCurve(QEasingCurve::InOutCubic);
-    m_animation->setStartValue(m_maxSize);
-    m_animation->setEndValue(m_minSize);
-    m_animation->start();
+    m_hideAnimation->start();
 
     QEventLoop eventLoop;
-    connect(m_animation, SIGNAL(finished()), &eventLoop, SLOT(quit()));
+    connect(m_hideAnimation, SIGNAL(finished()), &eventLoop, SLOT(quit()));
     eventLoop.exec();
-    QWidget::hide();
 
+    QWidget::hide();
     return true;
 }
 

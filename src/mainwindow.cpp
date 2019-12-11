@@ -10,7 +10,7 @@
 #include "sudokusolver.h"
 
 #define margin 15              // 四周的边缘宽度
-#define gridSize 80            // 格子的大小
+#define gridSize 81            // 格子的大小
 #define halfSize gridSize / 2  // 半个格子的大小，也是按钮的高度
 #define spacing 5              // 九宫格之间的间隔
 
@@ -37,7 +37,7 @@ QPushButton* createButton(QString text)
 }
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent), ui(new Ui::MainWindow), m_sr(0), m_sc(0)
+    QMainWindow(parent), ui(new Ui::MainWindow), m_sr(0), m_r(-1), m_sc(0), m_c(-1)
 {
     // 窗口设置
     QColor color = QColor("#DDE2E5");
@@ -77,6 +77,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
             connect(grid, &GridWidget::hovered,      [=]()
             {
+                m_r = r; m_c = c;
                 if (!grid->isEnabled() || m_panel->isVisible())
                 {
                     return;
@@ -87,6 +88,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
             connect(grid, &GridWidget::leaved,       [=]()
             {
+                m_r = m_c = -1;
                 if (!grid->isEnabled() || m_panel->isVisible())
                 {
                     return;
@@ -97,36 +99,23 @@ MainWindow::MainWindow(QWidget *parent) :
 
             connect(grid, &GridWidget::rightClicked, [=]()
             {
-                if (m_panel->isVisible())
+                if (m_panel->isVisible() && m_panel->hide())
                 {
-                    // 尝试关闭
-                    if (m_panel->hide())
-                    {
-                        m_grids[m_sr][m_sc]->leave();
-                        smartAssistOff(m_sr, m_sc);
-                        smartAssistOn(r, c);
-                        grid->enter();
-                    }
+                    smartAssistOff(m_sr, m_sc);
                     return;
                 }
                 clearGrid(r, c);
             });
 
-            connect(grid, &GridWidget::clicked,      [=](){
-                if (m_panel->isVisible())
+            connect(grid, &GridWidget::clicked, [=](){
+                if (m_panel->show(grid->geometry().x(), grid->geometry().y()))
                 {
-                    // 尝试关闭
-                    if( m_panel->hide())
-                    {
-                        m_grids[m_sr][m_sc]->leave();
-                        smartAssistOff(m_sr, m_sc);
-                        smartAssistOn(r, c);
-                        grid->enter();
-                    }
+                    m_grids[r][c]->leave();
+                    smartAssistOff(m_sr, m_sc);
+                    smartAssistOn(r, c);
+                    m_sr = r;
+                    m_sc = c;
                 }
-                m_sr = r;
-                m_sc = c;
-                m_panel->show(grid->geometry().x(), grid->geometry().y());
             });
         }
     }
@@ -181,7 +170,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(solveButton,  SIGNAL(clicked()),   this, SLOT(solve()));
     connect(m_undoButton, SIGNAL(clicked()),   this, SLOT(undo()));
     connect(m_redoButton, SIGNAL(clicked()),   this, SLOT(redo()));
-    connect(m_panel,      SIGNAL(finish(int)), this, SLOT(receiveResult(int)));
+    connect(m_panel,      &SelectPanel::finish, [&](int selected){m_grids[m_sr][m_sc]->enter(); receiveResult(selected);});
 
     int space = std::min(spacing / 10, 2);
     for (int i = 0; i < 9; i++)

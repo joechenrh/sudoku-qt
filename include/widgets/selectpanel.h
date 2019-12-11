@@ -12,6 +12,7 @@
 #include <QList>
 
 #include "hoverbutton.h"
+#include "panelbase.h"
 
 /**
  * @brief The SelectPanel class 修改数字的面板
@@ -31,7 +32,7 @@ public:
      * @param y 打开时所在的y坐标
      * @details 如果在调用打开时，控件正在关闭，则会等待控件关闭后，再打开
      */
-    void show(int x, int y);
+    bool show(int x, int y);
 
     /**
      * @brief 关闭控件，同时触发动画效果
@@ -46,6 +47,10 @@ public:
      */
     bool isVisible() const;
 
+    bool isHiding() const;
+
+    bool isShowing() const;
+
     /**
      * @brief setSelected 设置初始值
      * @param list 当前格子已选择的值
@@ -53,19 +58,14 @@ public:
     void setSelected(QList<int> list);
 
 private:
-    QRect m_minSize;
-
-    QRect m_maxSize;
-
     /**
      * @brief 记录多选的数据，暂未使用
      */
     QVector<int> m_selected;
 
-    /**
-     * @brief 控制控件显示和关闭的动画效果
-     */
-    QPropertyAnimation *m_animation;
+    QPropertyAnimation *m_showAnimation;
+
+    QPropertyAnimation *m_hideAnimation;
 
     /**
      * @brief 九宫格的九个按钮
@@ -75,7 +75,7 @@ private:
     /**
      * @brief 面板的背景
      */
-    QLabel *m_background;
+    PanelBase *m_background;
 
     /**
      * @brief 面板的前景，包含了九个按钮

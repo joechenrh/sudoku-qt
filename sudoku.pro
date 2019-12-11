@@ -28,6 +28,7 @@ INCLUDEPATH += include \
 
 
 SOURCES += \
+    include/widgets/panelbase.cpp \
         main.cpp \
     src/mainwindow.cpp \
     src/widgets/hoverbutton.cpp \
@@ -40,6 +41,7 @@ HEADERS += \
     include/sudokusolver.h \
     include/mainwindow.h \
     include/widgets/hoverbutton.h \
+    include/widgets/panelbase.h \
     include/widgets/selectpanel.h \
     include/widgets/gridwidget.h   \
     include/widgets/gridmarker.h \

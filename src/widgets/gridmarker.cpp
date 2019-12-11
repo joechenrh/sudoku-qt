@@ -10,23 +10,12 @@ GridMarker::GridMarker(int size, QWidget *parent)
 {
     int start = static_cast<int>(size * 0.2) - m_indent;
     m_maxSize = QRect(start, start, size - 2 * start, size - 2 * start);
-    m_minSize = QRect(size / 2, size / 2, 0, 0);
+    m_minSize = QRect(size / 2, size / 2, 1, 1);
 
     m_scaleAnimation = new QPropertyAnimation(this, "geometry");
     m_scaleAnimation->setEasingCurve(QEasingCurve::InOutQuad);
     m_scaleAnimation->setStartValue(m_minSize);
     m_scaleAnimation->setDuration(duration);
-
-    /*
-    QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect;
-    opacityEffect->setOpacity(0.999);
-    this->setGraphicsEffect(opacityEffect);
-
-    m_opacityAnimation = new QPropertyAnimation(opacityEffect, "opacity");
-    m_opacityAnimation->setEasingCurve(QEasingCurve::InOutQuad);
-    m_opacityAnimation->setStartValue(0.2);
-    m_opacityAnimation->setDuration(duration);
-    */
 }
 
 void GridMarker::hide()
@@ -56,7 +45,7 @@ void GridMarker::reveal()
 void GridMarker::paintEvent(QPaintEvent*)
 {
     int size = width();
-    if (size < m_indent * 2)
+    if (size < m_indent * 2 + 1)
     {
         return;
     }

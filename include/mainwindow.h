@@ -123,11 +123,13 @@ private:
      * @brief 鼠标点击位置所在行
      */
     int m_sr;
+    int m_r;
 
     /**
      * @brief 鼠标点击位置所在列
      */
     int m_sc;
+    int m_c;
 
     /**
      * @brief 储存每个数组单元格的影响范围

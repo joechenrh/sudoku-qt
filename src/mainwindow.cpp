@@ -37,7 +37,8 @@ QPushButton* createButton(QString text)
 }
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent), ui(new Ui::MainWindow), m_sr(-1), m_sc(-1), m_switching(true)
+    QMainWindow(parent), ui(new Ui::MainWindow)
+  , m_sr(-1), m_sc(-1), m_switching(false), m_forcing(false)
 {
     // 窗口设置
     QColor color = QColor("#DDE2E5");
@@ -77,12 +78,20 @@ MainWindow::MainWindow(QWidget *parent) :
 
             connect(grid, &GridWidget::hovered,      [=]()
             {
-                if (!m_switching || !grid->isEnabled() || m_panel->isVisible())
+                if ((!m_switching && grid->isEnabled() && !m_panel->isVisible()) || m_forcing)
+                {
+                    smartAssistOn(r, c);
+                    grid->enter();
+                }
+                /*
+                if (m_switching || !grid->isEnabled() || m_panel->isVisible())
                 {
                     return;
                 }
                 smartAssistOn(r, c);
                 grid->enter();
+                */
+
             });
 
             connect(grid, &GridWidget::leaved,       [=]()
@@ -114,10 +123,10 @@ MainWindow::MainWindow(QWidget *parent) :
             });
 
             connect(grid, &GridWidget::clicked, [=](){
-                m_switching = false;
+                m_switching = true;
                 if (!m_panel->isVisible() || m_panel->hide())
                 {
-                    m_switching = true;;
+                    m_switching = false;
                     m_panel->show(grid->geometry().x(), grid->geometry().y());
                     if (m_sr >= 0 && m_sc >= 0)
                     {
@@ -179,10 +188,19 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(loadButton,   SIGNAL(clicked()),   this, SLOT(loadRandomPuzzle()));
     connect(clearButton,  SIGNAL(clicked()),   this, SLOT(clearAll()));
-    connect(solveButton,  SIGNAL(clicked()),   this, SLOT(solve()));
+    connect(solveButton,  &QPushButton::clicked,   [&](){ if(!m_panel->isVisible()) solve(); });
     connect(m_undoButton, SIGNAL(clicked()),   this, SLOT(undo()));
     connect(m_redoButton, SIGNAL(clicked()),   this, SLOT(redo()));
-    connect(m_panel,      &SelectPanel::finish, [&](int selected){ m_grids[m_sr][m_sc]->enter(); receiveResult(selected);});
+    connect(m_panel,      &SelectPanel::finish, [&](int selected)
+    {
+        //m_grids[m_sr][m_sc]->enter();
+        smartAssistOff(m_sr, m_sc);
+        receiveResult(selected);
+
+        m_forcing = true;
+        m_panel->hide();
+        m_forcing = false;
+    });
 
     int space = std::min(spacing / 10, 2);
     for (int i = 0; i < 9; i++)

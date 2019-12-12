@@ -54,7 +54,7 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
 
             connect(button, &HoverButton::hovered,      [=](){ button->setFont(hoverFont); button->setStyleSheet(enterStylesheet); });
             connect(button, &HoverButton::leaved,       [=](){ button->setFont(normalFont); button->setStyleSheet(leaveStylesheet); });
-            connect(button, &HoverButton::clicked,      [=](){ emit finish(r * 3 + c + 1); this->hide(); });
+            connect(button, &HoverButton::clicked,      [=](){ emit finish(r * 3 + c + 1); });
             connect(button, &HoverButton::rightClicked, [=](){ m_selected[r * 3 + c] = 1; });
         }
     }

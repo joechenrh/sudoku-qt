@@ -136,6 +136,12 @@ private:
     bool m_switching;
 
     /**
+     * @brief 是否强制触发进入退出事件
+     * @details 为了解决问题3，确定选择后无法控制触发事件
+     */
+    bool m_forcing;
+
+    /**
      * @brief 储存每个数组单元格的影响范围
      */
     QVector<QVector<QSet<QPair<int, int>>>> m_controlRanges;

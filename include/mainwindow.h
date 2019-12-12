@@ -111,13 +111,42 @@ private:
     void clearGrid(int r, int c);
 
     /**
-     * @brief changeNumber 调整某个单元格的值
+     * @brief 调整某个单元格的值
      * @param r 所选行
      * @param c 所选列
      * @param previous 修改之前的值
      * @param selected 修改之后的值
      */
     void changeNumber(int r, int c, int previous, int selected);
+
+    /*****************************/
+
+    /**
+     * @brief 储存单元格控件的二维数组
+     */
+    QVector<QVector<GridWidget*>> m_grids;
+
+    /**
+     * @brief 储存计数控件的数组
+     */
+    QVector<Counter*> m_counters;
+
+    /**
+     * @brief 修改数值的面板
+     */
+    SelectPanel *m_panel;
+
+    /**
+     * @brief 回退按钮
+     */
+    QPushButton *m_undoButton;
+
+    /**
+     * @brief 重做按钮
+     */
+    QPushButton *m_redoButton;
+
+    /*****************************/
 
     /**
      * @brief 鼠标点击位置所在行
@@ -147,19 +176,9 @@ private:
     QVector<QVector<QSet<QPair<int, int>>>> m_controlRanges;
 
     /**
-     * @brief 储存单元格控件的二维数组
+     * @brief 储存每个数字的所有位置
      */
-    QVector<QVector<GridWidget*>> m_grids;
-
-    /**
-     * @brief 储存计数控件的数组
-     */
-    QVector<Counter*> m_counters;
-
-    /**
-     * @brief 修改数值的面板
-     */
-    SelectPanel *m_panel;
+    QVector<QSet<QPair<int, int>>> m_numPositions;
 
     /**
      * @brief 操作栈，用于记录操作
@@ -170,16 +189,6 @@ private:
      * @brief 操作栈，用于记录回退的操作
      */
     QStack<Op> m_redoOps;
-
-    /**
-     * @brief 回退按钮
-     */
-    QPushButton *m_undoButton;
-
-    /**
-     * @brief 重做按钮
-     */
-    QPushButton *m_redoButton;
 };
 
 #endif // MAINWINDOW_H

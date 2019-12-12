@@ -49,7 +49,10 @@ MainWindow::MainWindow(QWidget *parent) :
     /*********************************************/
 
     m_grids.resize(9);
+    m_counters.resize(10);
+    m_numPositions.resize(10);
     m_controlRanges.resize(9);
+
     for(int r = 0; r < 9; r++)
     {
         m_grids[r].resize(9);
@@ -76,38 +79,28 @@ MainWindow::MainWindow(QWidget *parent) :
             grid->move(margin + c * gridSize + c / 3 * spacing, margin + r * gridSize + r / 3 * spacing);
             m_grids[r][c] = grid;
 
-            connect(grid, &GridWidget::hovered,      [=]()
+            connect(grid, &GridWidget::hovered, [=]()
             {
                 if ((!m_switching && grid->isEnabled() && !m_panel->isVisible()) || m_forcing)
                 {
                     smartAssistOn(r, c);
                     grid->enter();
                 }
-                /*
-                if (m_switching || !grid->isEnabled() || m_panel->isVisible())
-                {
-                    return;
-                }
-                smartAssistOn(r, c);
-                grid->enter();
-                */
-
             });
 
-            connect(grid, &GridWidget::leaved,       [=]()
+            connect(grid, &GridWidget::leaved, [=]()
             {
-                if (!grid->isEnabled() || m_panel->isVisible())
+                if (grid->isEnabled() && !m_panel->isVisible())
                 {
-                    return;
+                    m_sr = m_sc = -1;
+                    smartAssistOff(r, c);
+                    grid->leave();
                 }
-                m_sr = m_sc = -1;
-                smartAssistOff(r, c);
-                grid->leave();
             });
 
             // 问题1：取消后立刻移到被取消的单元格，marker会出现，原因：off比hover里的on晚触发
             // 问题2：面板显示时，左击附近格子再立刻移入之前的格子，会出现marker | 通过添加m_switching解决
-            // 问题3：点选数字后迅速移开，当前格子还会有marker
+            // 问题3：点选数字后迅速移开，当前格子还会有marker | 通过添加m_forcing解决
 
             connect(grid, &GridWidget::rightClicked, [=]()
             {
@@ -203,13 +196,13 @@ MainWindow::MainWindow(QWidget *parent) :
     });
 
     int space = std::min(spacing / 10, 2);
-    for (int i = 0; i < 9; i++)
+    for (int num = 1; num <= 9; ++num)
     {
-       Counter *counter = new Counter(i + 1, gridSize, this);
-       counter->move(margin + gridSize * 9 + halfSize, margin + space + i * (space + gridSize));
-       m_counters.push_back(counter);
-       connect(counter, &Counter::hovered, [=]() {highlight(i + 1, true);});
-       connect(counter, &Counter::leave,   [=]() {highlight(i + 1, false);});
+       Counter *counter = new Counter(num, gridSize, this);
+       counter->move(margin + gridSize * 9 + halfSize, margin - gridSize + num * (space + gridSize));
+       connect(counter, &Counter::hovered, [=]() {highlight(num, true);});
+       connect(counter, &Counter::leave,   [=]() {highlight(num, false);});
+       m_counters[num] = counter;
     }
 
     loadRandomPuzzle();
@@ -245,23 +238,19 @@ void MainWindow::receiveResult(int selected)
 
 void MainWindow::highlight(int num, int active)
 {
-    for (int r = 0; r < 9; r++)
+    for (auto pair : m_numPositions[num])
     {
-        for (int c = 0; c < 9; c++)
+        if (active)
         {
-            if (m_grids[r][c]->value() == num)
-            {
-                if (active)
-                {
-                    m_grids[r][c]->showBackground();
-                }
-                else
-                {
-                    m_grids[r][c]->hideBackground();
-                }
-
-            }
+           m_grids[pair.first][pair.second]->showBackground();
         }
+        // 取消高亮时如果在选择状态，被覆盖的块不会被取消高亮
+        else if (!m_panel->isVisible() ||
+                 m_controlRanges[m_sr][m_sc].find(pair) == m_controlRanges[m_sr][m_sc].end())
+        {
+            m_grids[pair.first][pair.second]->hideBackground();
+        }
+
     }
 }
 
@@ -274,7 +263,8 @@ void MainWindow::changeNumber(int r, int c, int previous, int selected)
     // 冲突检测，将和旧值相同的格子冲突数都减去1
     if (previous > 0)
     {
-        m_counters[previous - 1]->plus();
+        m_counters[previous]->plus();
+        m_numPositions[previous].erase(m_numPositions[previous].find(qMakePair(r, c)));
         for (auto pair : m_controlRanges[r][c])
         {
             if (m_grids[pair.first][pair.second]->value() == previous)
@@ -288,7 +278,8 @@ void MainWindow::changeNumber(int r, int c, int previous, int selected)
     // 如果新的值不为0，将和新值相同的格子冲突数加1，再计算本身的冲突数
     if (selected > 0)
     {
-        m_counters[selected - 1]->minus();
+        m_counters[selected]->minus();
+        m_numPositions[selected].insert(qMakePair(r, c));
         for (auto pair : m_controlRanges[r][c])
         {
             if (m_grids[pair.first][pair.second]->value() == selected)
@@ -327,18 +318,20 @@ void MainWindow::clearAll()
     {
         for (int c = 0; c < 9; c++)
         {
-            if (m_grids[r][c]->isEnabled() && m_grids[r][c]->value())
+            int value = m_grids[r][c]->value();
+            if (m_grids[r][c]->isEnabled() && value)
             {
-                ++counts[m_grids[r][c]->value()];
+                ++counts[value];
                 m_grids[r][c]->setValue(0);
+                m_numPositions[value].erase(m_numPositions[value].find(qMakePair(r, c)));
             }
             m_grids[r][c]->clearConflict();
         }
     }
 
-    for (int i = 1; i < 10; i++)
+    for (int num = 1; num <= 9; ++num)
     {
-        m_counters[i - 1]->plus(counts[i]);
+        m_counters[num]->plus(counts[num]);
     }
 
     m_undoOps.clear();
@@ -391,6 +384,10 @@ void MainWindow::loadRandomPuzzle()
     }
 
     QVector<int> counts(10, 0);
+    for (auto &set : m_numPositions)
+    {
+        set.clear();
+    }
 
     int val;
     QString array = file.readAll();
@@ -403,13 +400,14 @@ void MainWindow::loadRandomPuzzle()
             val = cols.at(c).toInt();
             m_grids[r][c]->setEnabled(val == 0);  // 值为0表示待填充，即可操作
             m_grids[r][c]->setValue(val);
-            ++counts[val];
+            m_numPositions[val].insert(qMakePair(r, c));
+            ++counts[val];   
         }
     }
 
-    for (int i = 1; i <= 9; i++)
+    for (int num = 1; num <= 9; ++num)
     {
-        m_counters[i - 1]->setCount(9 - counts[i]);
+        m_counters[num]->setCount(9 - counts[num]);
     }
 
     m_undoOps.clear();
@@ -432,12 +430,19 @@ void MainWindow::solve()
     SudokuSolver solver(puzzle);
     solver.Solve();
 
+    for (int num = 0; num <= 9; ++num)
+    {
+        m_numPositions[num].clear();
+        m_counters[num]->setCount(0);
+    }
+
     for (int r = 0; r < 9; r++)
     {
-        m_counters[r]->setCount(0);
         for (int c = 0; c < 9; c++)
         {
-            m_grids[r][c]->setValue(solver.m_res[r][c]);
+            int value = solver.m_res[r][c];
+            m_grids[r][c]->setValue(value);
+            m_numPositions[value].insert(qMakePair(r, c));
         }
     }
 }

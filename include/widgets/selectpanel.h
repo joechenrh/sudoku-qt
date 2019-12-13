@@ -12,7 +12,40 @@
 #include <QList>
 
 #include "hoverbutton.h"
-#include "panelbase.h"
+
+class PanelBase : public QLabel
+{
+    Q_OBJECT
+
+public:
+    PanelBase(int size, QWidget *parent = nullptr);
+
+    /**
+     * @brief 设置背景颜色
+     * @param color 背景颜色的字符串
+     */
+    void setColor(QString color);
+
+protected:
+    /**
+     * @brief 重载paintEvent函数
+     * @details 实现在控件上绘制一个圆形或方形
+     * @param event 传入的绘图事件
+     */
+    void paintEvent(QPaintEvent *event);
+
+private:
+    /**
+     * @brief 绘制所用的颜色
+     */
+    QColor m_color;
+
+    /**
+     * @brief 控件的最大尺寸
+     */
+    int m_size;
+};
+
 
 /**
  * @brief The SelectPanel class 修改数字的面板
@@ -47,10 +80,6 @@ public:
      */
     bool isVisible() const;
 
-    bool isHiding() const;
-
-    bool isShowing() const;
-
     /**
      * @brief setSelected 设置初始值
      * @param list 当前格子已选择的值
@@ -58,6 +87,9 @@ public:
     void setSelected(QList<int> list);
 
 private:
+    void initialize();
+
+
     /**
      * @brief 记录多选的数据，暂未使用
      */

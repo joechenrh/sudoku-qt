@@ -7,6 +7,7 @@
 #ifndef HOVERBUTTON_H
 #define HOVERBUTTON_H
 
+#include <QLabel>
 #include <QPushButton>
 #include <QMouseEvent>
 #include <QPropertyAnimation>
@@ -16,11 +17,9 @@
  * @details 相对于基础的鼠标控件，增加了右键事件和淡入淡出效果
  * 主要是为了GridWidget服务
  */
-class HoverButton : public QPushButton
+class HoverButton : public QLabel
 {
     Q_OBJECT
-
-    Q_PROPERTY(QColor color READ color WRITE setColor)
 
 public:
     HoverButton(QWidget *parent = nullptr);
@@ -34,10 +33,6 @@ public:
      * @brief 显示当前控件
      */
     void reveal();
-
-    void setStyleSheet(const QString &styleSheet);
-
-    void setColor(const QColor &color);
 
 protected:
     /**
@@ -76,9 +71,8 @@ signals:
      */
     void rightClicked();
 
-    /**
-     * @brief 鼠标中键点击触发的信号
-     */
+    void clicked();
+
     void midClicked();
 
 private:
@@ -86,12 +80,6 @@ private:
      * @brief 淡出动画
      */
     QPropertyAnimation *m_animation;
-
-    QColor m_color;
-
-    QString m_styleSheet;
-
-    QString m_baseStyleSheet;
 
 };
 

@@ -1,0 +1,32 @@
+{
+    "margin": 15,
+    "gridSize": 81,
+    "spacing": 8,
+
+    "Counter": {
+        "num_color": "#E66F99",
+        "cnt_color_unhovered": "#FAFAFA",
+        "cnt_color_hovered": "FADFE8",
+        "cnt_font_color": "#5F5F5F",
+        "num_font_color": "#FAFAFA"
+    },
+    
+    "GridWidget": {
+        "border_color_enabled": "#FB78A5",
+        "border_color_unabled": "#5F5F5F",
+        
+        "border_radius_conflict": 3,
+        "border_radius_noconflict": 0,
+
+        "font_color_unabled": "#5F5F5F",
+        "font_color_hovered": "#FFFFFF",
+        "font_color_normal": "#FB78A5",
+        
+        "background_color_hovered": "#FADFE8",
+        "background_color_unhovered": "#FAFAFA",
+        "background_shadow_color": "#C9C9C9",
+        
+        "marker_color": "#FB78A5",
+        "marker_color_shadow": "#E6CED6"
+    }
+}

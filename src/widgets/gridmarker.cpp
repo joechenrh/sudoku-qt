@@ -1,9 +1,6 @@
 ﻿#include "gridmarker.h"
 
-#define MARKER_COLOR "#FB78A5"           // color of marker
-#define MARKER_SHADOW_COLOR "#E6CED6"    // color of marker shadow
-
-const int duration = 200;
+#include <QDebug>
 
 GridMarker::GridMarker(int size, QWidget *parent)
     : QLabel(parent), m_indent(2)
@@ -15,28 +12,34 @@ GridMarker::GridMarker(int size, QWidget *parent)
     m_scaleAnimation = new QPropertyAnimation(this, "geometry");
     m_scaleAnimation->setEasingCurve(QEasingCurve::InOutQuad);
     m_scaleAnimation->setStartValue(m_minSize);
+}
+
+void GridMarker::setMarkerColor(const QColor &color)
+{
+    m_markerColor = color;
+}
+
+void GridMarker::setShadowColor(const QColor &color)
+{
+    m_shadowColor = color;
+}
+
+void GridMarker::setDuration(const int &duration)
+{
     m_scaleAnimation->setDuration(duration);
 }
 
 void GridMarker::hide()
 {
-    if (m_scaleAnimation->state() != QAbstractAnimation::Stopped)
-    {
-        m_scaleAnimation->stop();
-    }
-
+    m_scaleAnimation->stop();
     m_scaleAnimation->setStartValue(m_scaleAnimation->currentValue());
     m_scaleAnimation->setEndValue(m_minSize);
     m_scaleAnimation->start();
 }
 
-void GridMarker::reveal()
+void GridMarker::show()
 {
-    if (m_scaleAnimation->state() != QAbstractAnimation::Stopped)
-    {
-        m_scaleAnimation->stop();
-    }
-
+    m_scaleAnimation->stop();
     m_scaleAnimation->setStartValue(m_scaleAnimation->currentValue());
     m_scaleAnimation->setEndValue(m_maxSize);
     m_scaleAnimation->start();
@@ -50,19 +53,17 @@ void GridMarker::paintEvent(QPaintEvent*)
         return;
     }
 
-    QColor markShadowColor = QColor(MARKER_SHADOW_COLOR);
-    QColor markColor = QColor(MARKER_COLOR);
     int alpha = 255 * size / m_maxSize.width();
-    markShadowColor.setAlpha(alpha);
-    markColor.setAlpha(alpha);
+    m_shadowColor.setAlpha(alpha);
+    m_markerColor.setAlpha(alpha);
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Qt::NoPen);
-    painter.setBrush(QBrush(markShadowColor));
+    painter.setBrush(QBrush(m_shadowColor));
     painter.drawEllipse(m_indent, m_indent * 2, size - 2 * m_indent, size - 2 * m_indent);
 
     painter.setPen(Qt::NoPen);
-    painter.setBrush(QBrush(markColor));
+    painter.setBrush(QBrush(m_markerColor));
     painter.drawEllipse(m_indent, m_indent, size - 2 * m_indent, size - 2 * m_indent);
 }

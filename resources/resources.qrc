@@ -1,11 +1,11 @@
 <RCC>
-    <qresource prefix="/sudoku/fonts">
+    <qresource prefix="/fonts">
         <file>ARLRDBD.TTF</file>
     </qresource>
-    <qresource prefix="/sudoku/styles">
-        <file>style1.json</file>
+    <qresource prefix="/styles">
+        <file>simple.json</file>
     </qresource>
-    <qresource prefix="/sudoku/puzzles">
+    <qresource prefix="/puzzles">
         <file>1.txt</file>
         <file>2.txt</file>
     </qresource>

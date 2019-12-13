@@ -1,7 +1,0 @@
-{
-    "gridmarker":
-    {
-        "MARKER_COLOR": "#FB78A5",                  // 标记本身的颜色
-        "MARKER_SHADOW_COLOR": "#E6CED6"            // 标记阴影的颜色
-    }
-}

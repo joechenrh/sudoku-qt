@@ -2,93 +2,131 @@
 
 #include <QDebug>
 #include <QFontDatabase>
-#include <QGraphicsOpacityEffect>
 #include <QGraphicsDropShadowEffect>
 
-// TODO: 创建json文件，方便的配置颜色
-#define BORDER_COLOR_ENABLED "#FB78A5"        // border color when enabled
-#define BORDER_COLOR_UNABLED "#5F5F5F"        // border color when disabled
-
-#define BORDER_RADIUS_CONFLICT 3              // border radius when have conflict
-#define BORDER_RADIUS_NOCONFLICT 0            // border radius when no conflict
-
-#define FONT_COLOR_UNABLED "#5F5F5F"          // font color when disabled
-#define FONT_COLOR_HOVERED "#FFFFFF"          // font color when enabled and mouse hovered
-#define FONT_COLOR_NORMAL "#FB78A5"           // font color when enabled and mose not hovered
-
-#define BACKGROUND_COLOR_HOVERED "#FADFE8"    // background color when mouse hovered
-#define BACKGROUND_COLOR_UNHOVERED "#FAFAFA"  // background color when mouse not hovered
-#define BACKGROUND_SHADOW_COLOR "#C9C9C9"     // background shadow color
-
+const int duration = 200;
 
 GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
-    : QWidget(parent), m_value(0), m_numConflict(0)
-{
+    : QWidget(parent), m_style(GridWidgetStyle()), m_value(0), m_numConflict(0)
+{   
     // 设置单元格大小和阴影
     QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect(this);
     shadow->setOffset(2, 2);
     shadow->setBlurRadius(2);
-    shadow->setColor(BACKGROUND_SHADOW_COLOR);
     this->setGraphicsEffect(shadow);
     this->setFixedSize(size, size);
 
     // 单元格的样式，四角的单元格要加圆角
-    QString gridStyle = QString("background-color:%1;border:1px solid #C9C9C9;");
+    m_backgroundStyle = QString("background-color:%1;border:1px solid #C9C9C9;");
     if ((row == 0 || row == 8) && (col == 0 || col == 8))
     {
-        QString borderStyle = "border-%1-%2-radius:%3px;";
-        gridStyle += borderStyle.arg(row == 0 ? "top"  : "bottom")
-                                .arg(col == 0 ? "left" : "right" )
+        m_backgroundStyle += QString("border-%1-%2-radius:%3px;")
+                                .arg(row ? "bottom" : "top")
+                                .arg(col ? "right" : "left" )
                                 .arg(size / 5);
     }
 
     // 底层的背景
-    QLabel *background = new QLabel(this);
-    background->setFixedSize(size, size);
-    background->setStyleSheet(gridStyle.arg(BACKGROUND_COLOR_HOVERED));
-    background->setAttribute(Qt::WA_StyledBackground);
-    //this->setStyleSheet(gridStyle.arg(BACKGROUND_COLOR_HOVERED));
-    //this->setAttribute(Qt::WA_StyledBackground);
+    m_background = new QLabel(this);
+    m_background->setFixedSize(size, size);
 
     m_foreground = new HoverButton(this);
-    m_foreground->setStyleSheet(gridStyle.arg(BACKGROUND_COLOR_UNHOVERED));
     m_foreground->setFixedSize(size, size);
 
-    m_marker = new GridMarker(size);
-    m_marker->setParent(this);
-    m_marker->setGeometry(QRect(size / 2, size / 2, 0, 0));
+    m_marker = new GridMarker(size, this);
+    m_marker->setDuration(duration);
+    m_marker->setGeometry(QRect(size / 2, size / 2, 1, 1));
 
-    int buttonMargin = static_cast<int>(size / 5 - 5);
+    int buttonMargin = size / 5 - 5;
     int buttonSize = size - 2 * buttonMargin;
-    m_buttonStyle = QString("border-radius:%1px;border:%2px solid %3;"
-                            "background-color:transparent;color:%4").arg(buttonSize / 2);
+    // m_buttonStyle = QString("border:%1px solid %2;color:%3;");
 
-    // 初始风格
-    m_borderRadius = BORDER_RADIUS_NOCONFLICT;
-    m_borderColor  = BORDER_COLOR_ENABLED;
-    m_fontColor    = FONT_COLOR_NORMAL;
-
-    int nIndex = QFontDatabase::addApplicationFont(":/sudoku/fonts/ARLRDBD.TTF");
+    int nIndex = QFontDatabase::addApplicationFont(":/fonts/ARLRDBD.TTF");
     QStringList strList(QFontDatabase::applicationFontFamilies(nIndex));
     QFont buttonFont = QFont(strList.at(0), size / 4);
 
     m_button = new HoverButton(this);
+    m_button->setObjectName("buttonText");
     m_button->setFont(buttonFont);
     m_button->setFixedSize(buttonSize, buttonSize);
     m_button->move(buttonMargin, buttonMargin);
-    m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+
+    setStyleSheet(QString("#buttonText{border-radius:%1px;background-color:transparent;}").arg(buttonSize / 2));
 
     connect(m_button, SIGNAL(clicked()),      this, SLOT(buttonClicked()));
     connect(m_button, SIGNAL(rightClicked()), this, SLOT(buttonRightClicked()));
+
+    // 下面这段全部完成以后就能删除了
+    m_style.border_color[0] = "#5F5F5F";
+    m_style.border_color[1] = "#FB78A5";
+    m_style.border_radius[0] = 3;
+    m_style.border_radius[1] = 0;
+    m_style.font_color[0] = "#5F5F5F";
+    m_style.font_color[1] = "#FB78A5";
+    m_style.font_color[2] = "#FFFFFF";
+
+    m_style.background_color_hovered = "#FADFE8";
+    m_style.background_color_unhovered = "#FAFAFA";
+    m_style.background_shadow_color = "#C9C9C9";
+
+    // 初始风格
+    // m_borderRadius = m_style.border_radius[1];
+    // m_borderColor  = m_style.border_color[1];
+    // m_fontColor    = m_style.font_color[1];
+
+    m_foreground->setStyleSheet(m_backgroundStyle.arg(m_style.background_color_unhovered));
+    m_background->setStyleSheet(m_backgroundStyle.arg(m_style.background_color_hovered));
+    shadow->setColor(m_style.background_shadow_color);
+    m_marker->setMarkerColor("#FB78A5");
+    m_marker->setShadowColor("#E6CED6");
+    m_button->setStyleSheet(QString("border:%1px solid %2;color:%3;")
+                            .arg(m_style.border_radius[1])
+                            .arg(m_style.border_color[1])
+                            .arg(m_style.font_color[1]));
 }
 
-void GridWidget::setEnabled(bool flag)
+void GridWidget::setColorStyle(QJsonObject json)
 {
-    m_fontColor = flag ? FONT_COLOR_NORMAL : FONT_COLOR_UNABLED;
-    m_borderColor = flag ? BORDER_COLOR_ENABLED : BORDER_COLOR_UNABLED;
+    m_style.border_color[0] = json.value("border_color_unabled").toString();
+    m_style.border_color[1] = json.value("border_color_enabled").toString();
 
-    m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
-    m_button->setEnabled(flag);
+    m_style.border_radius[0] = json.value("border_radius_conflict").toInt();
+    m_style.border_radius[1] = json.value("border_radius_noconflict").toInt();
+
+    m_style.font_color[0] = json.value("font_color_normal").toString();
+    m_style.font_color[1] = json.value("font_color_hovered").toString();
+    m_style.font_color[2] = json.value("font_color_unabled").toString();
+
+    m_style.background_color_hovered = json.value("background_color_hovered").toString();
+    m_style.background_color_unhovered = json.value("background_color_unhovered").toString();
+    m_style.background_shadow_color = json.value("background_shadow_color").toString();
+
+    //m_borderRadius = m_style.border_radius[m_numConflict == 0];
+    //m_borderColor  = m_style.border_color[m_button->isEnabled()];
+    //m_fontColor    = m_style.font_color[m_button->isEnabled()];
+
+    ((QGraphicsDropShadowEffect*)graphicsEffect())->setColor(m_style.background_shadow_color);
+    m_marker->setMarkerColor(json.value("marker_color").toString());
+    m_marker->setShadowColor(json.value("marker_color_shadow").toString());
+    m_foreground->setStyleSheet(m_backgroundStyle.arg(m_style.background_color_unhovered));
+    m_background->setStyleSheet(m_backgroundStyle.arg(m_style.background_color_hovered));
+    setButtonStyle(false);
+    //m_button->setStyleSheet(m_buttonStyle
+    //                        .arg(m_borderRadius)
+    //                        .arg(m_borderColor)
+    //                        .arg(m_fontColor));
+}
+
+void GridWidget::setEnabled(bool enabled)
+{
+    m_button->setEnabled(enabled);
+    //m_fontColor = m_style.font_color[enabled];
+    //m_borderColor = m_style.border_color[enabled];
+    //m_button->setStyleSheet(m_buttonStyle
+    //                        .arg(m_borderRadius)
+    //                        .arg(m_borderColor)
+    //                        .arg(m_fontColor));
+    setButtonStyle(false);
 }
 
 bool GridWidget::isEnabled() const
@@ -109,25 +147,29 @@ int GridWidget::value() const
 
 void GridWidget::changeConflict(int num)
 {
+    /*
     if (m_numConflict == 0 && num > 0)
     {
-        m_borderRadius = BORDER_RADIUS_CONFLICT;
+        m_borderRadius = m_style.border_radius[1];
         m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
     }
     else if (m_numConflict > 0 && m_numConflict + num == 0)
     {
-        m_borderRadius = BORDER_RADIUS_NOCONFLICT;
+        m_borderRadius = m_style.border_radius[0];
         m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
     }
+    */
 
     m_numConflict += num;
+    setButtonStyle(false);
 }
 
 void GridWidget::clearConflict()
 {
     m_numConflict = 0;
-    m_borderRadius = BORDER_RADIUS_NOCONFLICT;
-    m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+    setButtonStyle(false);
+    //m_borderRadius = m_style.border_radius[1];
+    //m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
 }
 
 
@@ -165,15 +207,26 @@ void GridWidget::hideBackground()
 void GridWidget::enter()
 {
     m_foreground->hide();
-    m_marker->reveal();
-    m_fontColor = FONT_COLOR_HOVERED;
-    m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+    m_marker->show();
+    setButtonStyle(true);
+    // m_fontColor = m_style.font_color[2];
+    // m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
 }
 
 void GridWidget::leave()
 {
     m_foreground->reveal();
     m_marker->hide();
-    m_fontColor = FONT_COLOR_NORMAL;
-    m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+    setButtonStyle(false);
+    // m_fontColor = m_style.font_color[1];
+    // m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+}
+
+void GridWidget::setButtonStyle(int entered)
+{
+    // 只有isEnabled()为true时entered才会为1
+    m_button->setStyleSheet(QString("border:%1px solid %2;color:%3;")
+                            .arg(m_style.border_radius[m_numConflict == 0])
+                            .arg(m_style.border_color[m_button->isEnabled()])
+                            .arg(m_style.font_color[m_button->isEnabled() + entered]));
 }

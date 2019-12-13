@@ -4,13 +4,12 @@
  * @author Joe chen <joechenrh@gmail.com>
  */
 
-#ifndef TESTWIDGET_H
-#define TESTWIDGET_H
+#ifndef GRIDMARKER_H
+#define GRIDMARKER_H
 
 #include <QLabel>
 #include <QPainter>
 #include <QPropertyAnimation>
-#include <QGraphicsOpacityEffect>
 
 /**
  * @brief The GridMarker class 鼠标进入九宫格时显示的圆形效果由这个控件绘制
@@ -19,6 +18,7 @@
 class GridMarker : public QLabel
 {
     Q_OBJECT
+
 public:
     /**
      * @brief GridMarker 构造函数
@@ -28,16 +28,41 @@ public:
     explicit GridMarker(int size, QWidget *parent = nullptr);
 
     /**
-     * @brief 显示圆形
+     * @brief 显示标记
      */
     void hide();
 
     /**
-     * @brief 隐藏圆形
+     * @brief 隐藏标记
      */
-    void reveal();
+    void show();
+
+    /**
+     * @brief 设置动画持续时间
+     */
+    void setDuration(const int &duration);
+
+    /**
+     * @brief 设置标记颜色
+     */
+    void setMarkerColor(const QColor &color);
+
+    /**
+     * @brief 设置阴影颜色
+     */
+    void setShadowColor(const QColor &color);
 
 private:
+    /**
+     * @brief 标记的颜色
+     */
+    QColor m_markerColor;
+
+    /**
+     * @brief 阴影的颜色
+     */
+    QColor m_shadowColor;
+
     /**
      * @brief 缩放的最大尺寸
      */
@@ -49,8 +74,8 @@ private:
     QRect m_minSize;
 
     /**
-     * @brief 控制绘制圆形时的缩进
-     * @details 由于需要绘制一层阴影，因此实际圆形的半径需要比控件大小的一半小一点
+     * @brief 控制绘制标记时的缩进
+     * @details 由于需要绘制一层阴影，因此实际标记的半径需要比控件大小的一半小一点
      */
     int m_indent;
 
@@ -63,9 +88,8 @@ protected:
     /**
      * @brief 重载paintEvent函数
      * @details 实现在控件上绘制一个圆形和一层阴影
-     * @param event 传入的绘图事件
      */
-    void paintEvent(QPaintEvent *event);
+    void paintEvent(QPaintEvent*);
 };
 
-#endif // TESTWIDGET_H
+#endif // GRIDMARKER_H

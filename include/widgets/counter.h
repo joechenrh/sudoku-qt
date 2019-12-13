@@ -4,10 +4,11 @@
  * @author Joe chen <joechenrh@gmail.com>
  */
 
-#ifndef CIRCLEWIDGET_H
-#define CIRCLEWIDGET_H
+#ifndef COUNTER_H
+#define COUNTER_H
 
 #include <QLabel>
+#include <QJsonObject>
 #include <QGraphicsOpacityEffect>
 
 
@@ -17,6 +18,15 @@
 class Counter : public QWidget
 {
     Q_OBJECT
+
+    struct CounterStyle
+    {
+        QString num_color;            // numLabel的背景色
+        QString cnt_color_unhovered;  // cntLabel的背景色
+        QString cnt_color_hovered;    // cntLabel覆盖时的背景色
+        QString cnt_font_color;       // cntLabel字体颜色
+        QString num_font_color;       // numLabel字体颜色
+    };
 
 public:
     Counter(int num, int size, QWidget *parent = nullptr);
@@ -28,29 +38,25 @@ public:
     void setCount(int value);
 
     /**
-     * @brief minus 减少剩余数量
-     * @param value 减少的值
+     * @brief 调整剩余数量
+     * @param value 变化的值
      */
-    void minus(int value = 1);
+    void modify(int value);
 
-    /**
-     * @brief plus 增加剩余数量
-     * @param value 增加的值
-     */
-    void plus(int value = 1);
+    void setColorStyle(QJsonObject json);
 
 protected:
     /**
      * @brief enterEvent 鼠标进入触发的事件
      * @param e 触发的事件
      */
-    void enterEvent(QEvent *e = nullptr);
+    void enterEvent(QEvent*);
 
     /**
      * @brief leaveEvent 鼠标离开触发的事件
      * @param e 触发的事件
      */
-    void leaveEvent(QEvent *e = nullptr);
+    void leaveEvent(QEvent*);
 
 
 signals:
@@ -65,11 +71,6 @@ signals:
     void leave();
 
 private:
-    /**
-     * @brief updateOpacity 更新控件的透明度
-     */
-    void updateOpacity();
-
     /**
      * @brief m_count 剩余数量
      */
@@ -91,9 +92,16 @@ private:
     QString m_cntStyle;
 
     /**
+     * @brief m_numStyle
+     */
+    QString m_numStyle;
+
+    /**
      * @brief m_cntOpacity 控制cntLabel的透明度，当剩余数量小于等于0时，控件透明度会降低
      */
     QGraphicsOpacityEffect *m_cntOpacity;
+
+    CounterStyle m_style;
 };
 
-#endif // CIRCLEWIDGET_H
+#endif // COUNTER_H

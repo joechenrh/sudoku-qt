@@ -1,12 +1,18 @@
 ﻿#include "selectpanel.h"
 
 #include <QDebug>
-#include <QPropertyAnimation>
+
 #include <QFontDatabase>
+
 #include <QEventLoop>
+#include <QPainter>
+#include <QPropertyAnimation>
 #include <QGraphicsOpacityEffect>
 
 const int duration = 200;
+
+#define BACKGROUND_COLOR 0
+#define FONT_COLOR 0
 
 SelectPanel::SelectPanel(int size, QWidget *parent)
     : QWidget(parent)
@@ -18,16 +24,17 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
     QRect minSize = QRect(size / 2, size / 2, 1, 1);
     QRect maxSize = QRect(-size / 4, -size / 4, size + size / 4 * 2, size + size / 4 * 2);
 
-    int nIndex = QFontDatabase::addApplicationFont(":/sudoku/fonts/ARLRDBD.TTF");
+    int nIndex = QFontDatabase::addApplicationFont(":/fonts/ARLRDBD.TTF");
     QStringList strList(QFontDatabase::applicationFontFamilies(nIndex));
 
-    QFont hoverFont = QFont(strList.at(0), 16);
+    QFont hoverFont = QFont(strList.at(0), 14);
     hoverFont.setBold(true);
 
     QFont normalFont = QFont(strList.at(0), 14);
 
-    QString enterStylesheet = "QWidget{color:#FAFAFA; background-color:transparent; border:0px solid black;}";
-    QString leaveStylesheet = "QWidget{color:#FBDFE8; background-color:transparent; border:0px solid black;}";
+    QString enterStylesheet = "color:#FAFAFA;";
+    QString leaveStylesheet = "color:#FBDFE8;";
+    setStyleSheet("#panelButton:{background-color:transparent}");
 
     m_background = new PanelBase(size, this);
     m_background->setColor("#FB78A5");
@@ -46,16 +53,35 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
         {
             HoverButton *button = new HoverButton(m_container);
             button->setFont(normalFont);
+            button->setObjectName("panelButton");
             button->setText(QString::number(r * 3 + c + 1));
             button->setStyleSheet(leaveStylesheet);
             button->move(buttonSize * c, buttonSize * r);
             button->setFixedSize(buttonSize, buttonSize);
             m_buttons[r * 3 + c] = button;
 
-            connect(button, &HoverButton::hovered,      [=](){ button->setFont(hoverFont); button->setStyleSheet(enterStylesheet); });
-            connect(button, &HoverButton::leaved,       [=](){ button->setFont(normalFont); button->setStyleSheet(leaveStylesheet); });
+            connect(button, &HoverButton::hovered,      [=]()
+            {
+                QFont font = QFont(strList.at(0), 16);
+                font.setBold(m_selected[r * 3 + c]);
+                button->setFont(font);
+                button->setStyleSheet(enterStylesheet);
+            });
+            connect(button, &HoverButton::leaved,       [=]()
+            {
+                QFont font = QFont(strList.at(0), 14);
+                font.setBold(m_selected[r * 3 + c]);
+                button->setFont(font);
+                button->setStyleSheet(leaveStylesheet);
+            });
             connect(button, &HoverButton::clicked,      [=](){ emit finish(r * 3 + c + 1); });
-            connect(button, &HoverButton::rightClicked, [=](){ m_selected[r * 3 + c] = 1; });
+            connect(button, &HoverButton::rightClicked, [=]()
+            {
+                QFont font = QFont(strList.at(0), 14);
+                font.setBold(true);
+                button->setFont(font);
+                m_selected[r * 3 + c] = 1;
+            });
         }
     }
 
@@ -78,16 +104,10 @@ bool SelectPanel::isVisible() const
     return QWidget::isVisible();
 }
 
-bool SelectPanel::isHiding() const
+void SelectPanel::initialize()
 {
-    return m_hideAnimation->state() == QAbstractAnimation::Running;
-}
 
-bool SelectPanel::isShowing() const
-{
-    return m_showAnimation->state() == QAbstractAnimation::Running;
 }
-
 
 bool SelectPanel::show(int x, int y)
 {
@@ -106,6 +126,7 @@ bool SelectPanel::show(int x, int y)
     }
 
     this->move(x, y);
+    this->initialize();
 
     QWidget::show();
     m_container->show();
@@ -144,4 +165,27 @@ void SelectPanel::setSelected(QList<int> list)
         m_selected[v - 1] = 1;
         m_buttons[v - 1];
     }
+}
+
+
+
+PanelBase::PanelBase(int size, QWidget *parent)
+    : QLabel(parent), m_size(size) { }
+
+void PanelBase::setColor(QString color)
+{
+    m_color = QColor(color);
+}
+
+void PanelBase::paintEvent(QPaintEvent*)
+{
+    int alpha = std::min(255 * width() / m_size, 255);
+    m_color.setAlpha(alpha);
+
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QBrush(m_color));
+    painter.drawEllipse(0, 0, width(), width());
+
 }

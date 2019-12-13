@@ -7,10 +7,11 @@
 #ifndef GRIDWIDGET_H
 #define GRIDWIDGET_H
 
-#include <QLabel>
+#include <QJsonObject>
 
 #include "hoverbutton.h"
 #include "gridmarker.h"
+
 
 /**
  * @brief The GridWidget class
@@ -22,16 +23,29 @@
 class GridWidget : public QWidget
 {
     Q_OBJECT
-public:
 
+    struct GridWidgetStyle
+    {
+        int border_radius[2];
+        QString border_color[2];
+        QString font_color[3];
+
+        QString background_color_hovered;
+        QString background_color_unhovered;
+        QString background_shadow_color;
+    };
+
+public:
     explicit GridWidget(int row, int col, int size = 75, QWidget *parent = nullptr);
+
+    void setColorStyle(QJsonObject json);
 
     /**
      * @brief setEnabled 设置当前控件是否可操作
      * @param flag 是否可操作
      * @details 谜面所在的单元格是不能编辑的，也不会触发任何鼠标事件
      */
-    void setEnabled(bool flag);
+    void setEnabled(bool enabled);
 
     /**
      * @brief 返回当前控件是否可操作
@@ -77,6 +91,9 @@ public:
      */
     void clearConflict();
 
+/******************************/
+/* 下面8个都是为了传递信号        */
+
 protected:
     /**
      * @brief 鼠标移入触发的事件
@@ -89,6 +106,17 @@ protected:
      * @param 鼠标事件
      */
     void leaveEvent(QEvent *e);
+
+private slots:
+    /**
+     * @brief 顶层按钮被左击时的slot
+     */
+    void buttonClicked();
+
+    /**
+     * @brief 顶层按钮被右击时的slot
+     */
+    void buttonRightClicked();
 
 signals:
     /**
@@ -111,18 +139,11 @@ signals:
      */
     void rightClicked();
 
-private slots:
-    /**
-     * @brief 顶层按钮被左击时的slot
-     */
-    void buttonClicked();
-
-    /**
-     * @brief 顶层按钮被右击时的slot
-     */
-    void buttonRightClicked();
+/******************************/
 
 private:
+    GridWidgetStyle m_style;
+
     /**
      * @brief 最顶层的按钮，用于显示数值和触发单击事件
      */
@@ -134,14 +155,45 @@ private:
     GridMarker *m_marker;
 
     /**
+     * @brief m_background
+     */
+    QLabel *m_background;
+
+    /**
      * @brief 底层的前景
      */
     HoverButton *m_foreground;
 
+
     /**
      * @brief 顶层按钮的stylesheet
      */
-    QString m_buttonStyle;
+    // QString m_buttonStyle;
+
+    /**
+     * @brief m_backgroundStyle
+     */
+    QString m_backgroundStyle;
+
+
+    /**
+     * @brief 边框的宽度，只可能为0或3
+     * @details 单元格发生冲突时显示的白圈
+     * 就是通过控件的border属性来绘制的
+     */
+    //int m_borderRadius;
+
+    /**
+     * @brief 边框的颜色
+     * @see m_borderRadius
+     */
+    //QString m_borderColor;
+
+    /**
+     * @brief 字体的颜色
+     */
+    //QString m_fontColor;
+
 
     /**
      * @brief 当前单元格的值
@@ -154,23 +206,7 @@ private:
      */
     int m_numConflict;
 
-    /**
-     * @brief 边框的宽度，只可能为0或3
-     * @details 单元格发生冲突时显示的白圈
-     * 就是通过控件的border属性来绘制的
-     */
-    int m_borderRadius;
-
-    /**
-     * @brief 边框的颜色
-     * @see m_borderRadius
-     */
-    QString m_borderColor;
-
-    /**
-     * @brief 字体的颜色
-     */
-    QString m_fontColor;
+    void setButtonStyle(int entered);
 };
 
 #endif // GRIDWIDGET_H

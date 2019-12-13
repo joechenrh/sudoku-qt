@@ -5,7 +5,6 @@
 #include <QTime>
 #include <QDebug>
 #include <QFontDatabase>
-#include <QGraphicsDropShadowEffect>
 
 #include "sudokusolver.h"
 
@@ -14,9 +13,9 @@
 #define halfSize gridSize / 2  // 半个格子的大小，也是按钮的高度
 #define spacing 5              // 九宫格之间的间隔
 
-QPushButton* createButton(QString text)
+QPushButton* createButton(QWidget* parent, QSize size, QString text)
 {
-    int nIndex = QFontDatabase::addApplicationFont(":/sudoku/fonts/ARLRDBD.TTF");
+    int nIndex = QFontDatabase::addApplicationFont(":/fonts/ARLRDBD.TTF");
     QStringList strList(QFontDatabase::applicationFontFamilies(nIndex));
 
     QFont buttonFont = QFont(strList.at(0), 12);
@@ -28,11 +27,11 @@ QPushButton* createButton(QString text)
     shadow_effect->setBlurRadius(2);
 
     QPushButton *button = new QPushButton(text);
+    button->setParent(parent);
     button->setFont(buttonFont);
+    button->setFixedSize(size);
     button->setGraphicsEffect(shadow_effect);
-    button->setStyleSheet(QString("QWidget{border-radius:%1px;background-color:#FFFFFF;color:#5F5F5F;}"
-                                  "QPushButton:hover{background-color:rgb(236,236,236);}"
-                                  "QPushButton:pressed{background-color:rgb(222,222,222);}").arg(gridSize / 2));
+
     return button;
 }
 
@@ -74,10 +73,13 @@ MainWindow::MainWindow(QWidget *parent) :
             }
             m_controlRanges[r][c].erase(m_controlRanges[r][c].find(qMakePair(r, c)));
 
-            GridWidget *grid = new GridWidget(r, c, gridSize);
-            grid->setParent(this);
+            GridWidget *grid = new GridWidget(r, c, gridSize, this);
             grid->move(margin + c * gridSize + c / 3 * spacing, margin + r * gridSize + r / 3 * spacing);
             m_grids[r][c] = grid;
+
+            // 问题1：取消后立刻移到被取消的单元格，marker会出现，原因：off比hover里的on晚触发
+            // 问题2：面板显示时，左击附近格子再立刻移入之前的格子，会出现marker | 通过添加m_switching解决
+            // 问题3：点选数字后迅速移开，当前格子还会有marker | 通过添加m_forcing解决
 
             connect(grid, &GridWidget::hovered, [=]()
             {
@@ -97,10 +99,6 @@ MainWindow::MainWindow(QWidget *parent) :
                     grid->leave();
                 }
             });
-
-            // 问题1：取消后立刻移到被取消的单元格，marker会出现，原因：off比hover里的on晚触发
-            // 问题2：面板显示时，左击附近格子再立刻移入之前的格子，会出现marker | 通过添加m_switching解决
-            // 问题3：点选数字后迅速移开，当前格子还会有marker | 通过添加m_forcing解决
 
             connect(grid, &GridWidget::rightClicked, [=]()
             {
@@ -134,59 +132,49 @@ MainWindow::MainWindow(QWidget *parent) :
         }
     }
 
-    QPushButton *loadButton = createButton("load");
-    loadButton->setParent(this);
+    /***************************************/
+    // 按钮
+    // 所有按钮的样式，圆角等属性每个按钮自己设定
+    this->setStyleSheet("MainWindow QPushButton{background-color:#FFFFFF;color:#5F5F5F;}"
+                        "MainWindow QPushButton:hover{background-color:rgb(236, 236, 236);}"
+                        "MainWindow QPushButton:pressed{background-color:rgb(222, 222, 222);}"
+                        "MainWindow QPushButton:!enabled{background-color:rgb(200, 200, 200);}");
+
+    // 加载按钮
+    QPushButton *loadButton = createButton(this, QSize(gridSize * 3, gridSize), "Load");
+    loadButton->setStyleSheet(QString("border-radius:%1px;").arg(halfSize));
     loadButton->move(margin + (gridSize * 3 + spacing) * 0, margin + gridSize * 9 + halfSize);
-    loadButton->setFixedSize(gridSize * 3, gridSize);
+    connect(loadButton, SIGNAL(clicked()), this, SLOT(loadRandomPuzzle()));
 
-    QPushButton *solveButton = createButton("solve");
-    solveButton->setParent(this);
+    // 求解按钮
+    QPushButton *solveButton = createButton(this, QSize(gridSize * 3, gridSize), "Solve");
+    solveButton->setStyleSheet(QString("border-radius:%1px;").arg(halfSize));
     solveButton->move(margin + (gridSize * 3 + spacing) * 1, margin + gridSize * 9 + halfSize);
-    solveButton->setFixedSize(gridSize * 3, gridSize);
+    connect(solveButton, SIGNAL(clicked()), this, SLOT(solve()));
 
-    QPushButton *clearButton = createButton("clear");
-    clearButton->setParent(this);
+    // 清空按钮
+    QPushButton *clearButton = createButton(this, QSize(gridSize * 3, gridSize), "Clear");
+    clearButton->setStyleSheet(QString("border-radius:%1px;").arg(halfSize));
     clearButton->move(margin + (gridSize * 3 + spacing) * 2, margin + gridSize * 9 + halfSize);
-    clearButton->setFixedSize(gridSize * 3, gridSize);
+    connect(clearButton, SIGNAL(clicked()), this, SLOT(clearAll()));
 
-    int nIndex = QFontDatabase::addApplicationFont(":/sudoku/fonts/ARLRDBD.TTF");
-    QStringList strList(QFontDatabase::applicationFontFamilies(nIndex));
-
-    m_undoButton = new QPushButton("<");
-    m_undoButton->setParent(this);
-    m_undoButton->setFont(QFont(strList.at(0), 12));
+    // 回退按钮
+    m_undoButton = createButton(this, QSize(halfSize, gridSize), "<");
     m_undoButton->move(margin + gridSize * 9 + halfSize, margin + gridSize * 9 + halfSize);
-    m_undoButton->setFixedSize(halfSize, gridSize);
-    m_undoButton->setStyleSheet(QString("QWidget{background-color:#FFFFFF;color:#5F5F5F;"
-                                        "border-top-left-radius:%1px;border-bottom-left-radius:%1px;}"
-                                        "QPushButton:hover{background-color:rgb(236, 236, 236);}"
-                                        "QPushButton:pressed{background-color:rgb(222, 222, 222);}"
-                                        "QPushButton:!enabled{background-color:rgb(200, 200, 200);}")
-                                        .arg(gridSize / 5));
+    m_undoButton->setStyleSheet(QString("border-top-left-radius:%1px;border-bottom-left-radius:%1px;").arg(halfSize));
+    connect(m_undoButton, SIGNAL(clicked()), this, SLOT(undo()));
 
-    m_redoButton = new QPushButton(">");
-    m_redoButton->setParent(this);
-    m_redoButton->setFont(QFont(strList.at(0), 12));
+    // 重做按钮
+    m_redoButton = createButton(this, QSize(halfSize, gridSize), ">");
     m_redoButton->move(margin + gridSize * 10, margin + gridSize * 9 + halfSize);
-    m_redoButton->setFixedSize(halfSize, gridSize);
-    m_redoButton->setStyleSheet(QString("QWidget{background-color:#FFFFFF;color:#5F5F5F;"
-                                        "border-top-right-radius:%1px;border-bottom-right-radius:%1px;}"
-                                        "QPushButton:hover{background-color:rgb(236, 236, 236);}"
-                                        "QPushButton:pressed{background-color:rgb(222, 222, 222);}"
-                                        "QPushButton:!enabled{background-color:rgb(200, 200, 200);}")
-                                        .arg(gridSize / 5));
+    m_redoButton->setStyleSheet(QString("border-top-right-radius:%1px;border-bottom-right-radius:%1px;").arg(halfSize));
+    connect(m_redoButton, SIGNAL(clicked()), this, SLOT(redo()));
 
-    m_panel = new SelectPanel(gridSize);
-    m_panel->setParent(this);
+    /***************************************/
 
-    connect(loadButton,   SIGNAL(clicked()),   this, SLOT(loadRandomPuzzle()));
-    connect(clearButton,  SIGNAL(clicked()),   this, SLOT(clearAll()));
-    connect(solveButton,  &QPushButton::clicked,   [&](){ if(!m_panel->isVisible()) solve(); });
-    connect(m_undoButton, SIGNAL(clicked()),   this, SLOT(undo()));
-    connect(m_redoButton, SIGNAL(clicked()),   this, SLOT(redo()));
-    connect(m_panel,      &SelectPanel::finish, [&](int selected)
+    m_panel = new SelectPanel(gridSize, this);
+    connect(m_panel, &SelectPanel::finish, [&](int selected)
     {
-        //m_grids[m_sr][m_sc]->enter();
         smartAssistOff(m_sr, m_sc);
         receiveResult(selected);
 
@@ -263,7 +251,7 @@ void MainWindow::changeNumber(int r, int c, int previous, int selected)
     // 冲突检测，将和旧值相同的格子冲突数都减去1
     if (previous > 0)
     {
-        m_counters[previous]->plus();
+        m_counters[previous]->modify(1);
         m_numPositions[previous].erase(m_numPositions[previous].find(qMakePair(r, c)));
         for (auto pair : m_controlRanges[r][c])
         {
@@ -278,7 +266,7 @@ void MainWindow::changeNumber(int r, int c, int previous, int selected)
     // 如果新的值不为0，将和新值相同的格子冲突数加1，再计算本身的冲突数
     if (selected > 0)
     {
-        m_counters[selected]->minus();
+        m_counters[selected]->modify(-1);
         m_numPositions[selected].insert(qMakePair(r, c));
         for (auto pair : m_controlRanges[r][c])
         {
@@ -313,6 +301,11 @@ void MainWindow::clearGrid(int r, int c)
 
 void MainWindow::clearAll()
 {
+    if (m_panel->isVisible())
+    {
+        return;
+    }
+
     QVector<int> counts(10, 0);
     for (int r = 0; r < 9; r++)
     {
@@ -331,7 +324,7 @@ void MainWindow::clearAll()
 
     for (int num = 1; num <= 9; ++num)
     {
-        m_counters[num]->plus(counts[num]);
+        m_counters[num]->modify(counts[num]);
     }
 
     m_undoOps.clear();
@@ -364,8 +357,13 @@ void MainWindow::smartAssistOn(int r, int c)
 // 随机生成谜题
 void MainWindow::loadRandomPuzzle()
 {    
+    if (m_panel->isVisible())
+    {
+        return;
+    }
+
     // 统计文件数量
-    QDir *dir = new QDir(":/sudoku/puzzles");
+    QDir *dir = new QDir(":/puzzles");
     QStringList filter;
     QList<QFileInfo> *fileInfo = new QList<QFileInfo>(dir->entryInfoList(filter));
     int count = fileInfo->count();  //文件个数
@@ -375,7 +373,7 @@ void MainWindow::loadRandomPuzzle()
     time= QTime::currentTime();
     qsrand(time.msec() + time.second() * 1000);
     int n = qrand() % count;
-    QString fileName = QString(":/sudoku/puzzles/%1.txt").arg(n + 1);
+    QString fileName = QString(":/puzzles/%1.txt").arg(n + 1);
 
     QFile file(fileName);
     if(!file.open(QFile::ReadOnly))
@@ -418,6 +416,11 @@ void MainWindow::loadRandomPuzzle()
 // 没有结果时的处理
 void MainWindow::solve()
 {
+    if (m_panel->isVisible())
+    {
+        return;
+    }
+
     QVector<QVector<int>> puzzle(9, QVector<int>(9, 0));
     for (int r = 0; r < 9; r++)
     {
@@ -450,6 +453,11 @@ void MainWindow::solve()
 
 void MainWindow::redo()
 {
+    if (m_panel->isVisible())
+    {
+        return;
+    }
+
     Op op = m_redoOps.pop();
     m_undoOps.push(op);
     changeNumber(op.row, op.col, op.before, op.after);
@@ -460,6 +468,11 @@ void MainWindow::redo()
 
 void MainWindow::undo()
 {
+    if (m_panel->isVisible())
+    {
+        return;
+    }
+
     Op op = m_undoOps.pop();
     m_redoOps.push(op);
     changeNumber(op.row, op.col, op.after, op.before);

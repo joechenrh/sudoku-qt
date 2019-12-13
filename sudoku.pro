@@ -34,14 +34,12 @@ SOURCES += \
     src/widgets/selectpanel.cpp \
     src/widgets/gridwidget.cpp \
     src/widgets/gridmarker.cpp \
-    src/widgets/counter.cpp \
-    src/widgets/panelbase.cpp
+    src/widgets/counter.cpp
 
 HEADERS += \
     include/sudokusolver.h \
     include/mainwindow.h \
     include/widgets/hoverbutton.h \
-    include/widgets/panelbase.h \
     include/widgets/selectpanel.h \
     include/widgets/gridwidget.h   \
     include/widgets/gridmarker.h \

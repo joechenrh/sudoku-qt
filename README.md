@@ -4,7 +4,7 @@ Sudoku game with solver based on Qt
 
 The interface refers to steam game [sudoku universe](https://store.steampowered.com/app/733070/Sudoku_Universe/)
 
-![界面](https://github.com/joechenrh/sudoku-qt/blob/master/images/sudoku.gif)
+![Interface](https://github.com/joechenrh/sudoku-qt/blob/master/images/sudoku.gif)
 
 ## Features:
 
@@ -18,7 +18,7 @@ The interface refers to steam game [sudoku universe](https://store.steampowered.
 
 ## Prerequisites
 
--   [Qt 5.12 (Open Source)](https://www.qt.io/download)
+-   [Qt 5.13 (Open Source)](https://www.qt.io/download)
 
 ## Building and Running
 
@@ -26,13 +26,3 @@ After checking out the project, the simplest way to build and run is through Qt 
 
 1. Open the project file, *sudoku.pro* in the project root.
 2. Build the project.
-
-## TODO
-
-- [x] Add Redo/Undo
-- [x] Add animation to select panel
-- [ ] support multiple choice
-- [ ] create puzzle from images
-- [ ] timer
-- [ ] randomly generate puzzle
-- [ ] improve fluency

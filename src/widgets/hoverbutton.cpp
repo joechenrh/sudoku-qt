@@ -15,6 +15,9 @@ HoverButton::HoverButton(QWidget *parent) : QPushButton(parent)
     m_animation->setDuration(duration);
     m_animation->setStartValue(opacityEffect->opacity());
     m_animation->setEasingCurve(QEasingCurve::InOutQuad);
+
+    m_baseStyleSheet = QString("%1 background-color: rgb(%1, %2, %3);");
+    m_styleSheet = QString("");
 }
 
 void HoverButton::hide()
@@ -41,6 +44,27 @@ void HoverButton::reveal()
     m_animation->start();
 }
 
+void HoverButton::setColor(const QColor &color)
+{
+    m_color = color;
+    QWidget::setStyleSheet(m_baseStyleSheet
+                          .arg(m_styleSheet)
+                          .arg(color.red())
+                          .arg(color.green())
+                          .arg(color.blue()));
+}
+
+void HoverButton::setStyleSheet(const QString &styleSheet)
+{
+    m_styleSheet = styleSheet;
+    QWidget::setStyleSheet(m_baseStyleSheet
+                          .arg(styleSheet)
+                          .arg(m_color.red())
+                          .arg(m_color.green())
+                          .arg(m_color.blue()));
+}
+
+
 void HoverButton::enterEvent(QEvent*)
 {
     emit hovered();
@@ -60,5 +84,9 @@ void HoverButton::mousePressEvent(QMouseEvent *e)
     else if(e->button() == Qt::LeftButton)
     {
         emit clicked();
+    }
+    else if (e->button() == Qt::MidButton)
+    {
+        emit midClicked();
     }
 }

@@ -88,15 +88,16 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
 
 void GridWidget::setColorStyle(QJsonObject json)
 {
-    m_style.border_color[0] = json.value("border_color_unabled").toString();
-    m_style.border_color[1] = json.value("border_color_enabled").toString();
+    m_style.border_color[0] = json.value("font_color_unabled").toString();
+    m_style.border_color[1] = json.value("font_color_normal").toString();
 
     m_style.border_radius[0] = json.value("border_radius_conflict").toInt();
-    m_style.border_radius[1] = json.value("border_radius_noconflict").toInt();
+    m_style.border_radius[1] = 0;
 
     m_style.font_color[0] = json.value("font_color_unabled").toString();
     m_style.font_color[1] = json.value("font_color_normal").toString();
-    m_style.font_color[2] = json.value("font_color_hovered").toString();
+    //m_style.font_color[2] = json.value("font_color_hovered").toString();
+    m_style.font_color[2] = "#FBFBFB";
 
     m_style.background_color_hovered = json.value("background_color_hovered").toString();
     m_style.background_color_unhovered = json.value("background_color_unhovered").toString();
@@ -109,8 +110,10 @@ void GridWidget::setColorStyle(QJsonObject json)
     //m_fontColor    = m_style.font_color[m_button->isEnabled()];
 
     ((QGraphicsDropShadowEffect*)graphicsEffect())->setColor(m_style.background_shadow_color);
-    m_marker->setMarkerColor(json.value("marker_color").toString());
+    // m_marker->setMarkerColor(json.value("marker_color").toString());
+    m_marker->setMarkerColor(json.value("font_color_normal").toString());
     m_marker->setShadowColor(json.value("marker_color_shadow").toString());
+
     m_foreground->setStyleSheet(m_backgroundStyle.arg(m_style.background_color_unhovered).arg(m_style.spacing_color));
     m_background->setStyleSheet(m_backgroundStyle.arg(m_style.background_color_hovered).arg(m_style.spacing_color));
     setButtonStyle(false);

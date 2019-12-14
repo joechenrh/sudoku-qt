@@ -14,27 +14,22 @@
     },
     
     "GridWidget": {
-        "border_color_enabled": "#FB78A5",
-        "border_color_unabled": "#5F5F5F",
-        
         "border_radius_conflict": 3,
-        "border_radius_noconflict": 0,
 
         "font_color_unabled": "#5F5F5F",
-        "font_color_hovered": "#FFFFFF",
         "font_color_normal": "#FB78A5",
         
         "background_color_hovered": "#FADFE8",
         "background_color_unhovered": "#FAFAFA",
         "background_shadow_color": "#C9C9C9",
         
-        "marker_color": "#FB78A5",
         "marker_color_shadow": "#E6CED6",
         
         "spacing_color": "#C9C9C9"
     },
     
     "SelectPanel": {
+        "font_color_selected": "#FBDFE8",
         "font_color": "#FAFAFA", 
         "background_color": "#FB78A5"    
     }

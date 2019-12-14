@@ -60,6 +60,7 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
             connect(button, &BaseWidget::clicked, [=](){ emit finish(r * 3 + c + 1); });
             connect(button, &BaseWidget::rightClicked, [=]()
             {
+                // Todo: 调整为用一个int型储存
                 m_selected[num] = 1 - m_selected[num];
                 button->setOpacity(m_selected[num] ? 1.0 : 0.7);
             });
@@ -78,17 +79,12 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
     m_hideAnimation->setStartValue(QRect(0, 0, size, size));
     m_hideAnimation->setEndValue(QRect(size / 2 - 4, size / 2 - 4, 9, 9));
 
-    // 下面这段全部完成以后就能删除了
-    /*
-    m_background->setColor("#FB78A5");
-    setStyleSheet("BaseWidget#panelButton{color:#FAFAFA;};");
-    */
+    setStyleSheet(QString("BaseWidget#panelButton{color:#FBFBFB;};"));
 }
 
 void SelectPanel::setColorStyle(QJsonObject json)
 {
     m_background->setColor(json.value("background_color").toString());
-    setStyleSheet(QString("BaseWidget#panelButton{color:%1;};").arg(json.value("font_color").toString()));
 }
 
 

@@ -1,7 +1,5 @@
 ﻿#include "gridmarker.h"
 
-#include <QDebug>
-
 GridMarker::GridMarker(int size, QWidget *parent)
     : QLabel(parent), m_indent(2)
 {

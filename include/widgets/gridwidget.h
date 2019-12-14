@@ -7,11 +7,10 @@
 #ifndef GRIDWIDGET_H
 #define GRIDWIDGET_H
 
-#include <QJsonObject>
-
-#include "hoverbutton.h"
+#include "basewidget.h"
 #include "gridmarker.h"
 
+#include <QJsonObject>
 
 /**
  * @brief The GridWidget class
@@ -33,6 +32,7 @@ class GridWidget : public QWidget
         QString background_color_hovered;
         QString background_color_unhovered;
         QString background_shadow_color;
+        QString spacing_color;
     };
 
 public:
@@ -147,7 +147,7 @@ private:
     /**
      * @brief 最顶层的按钮，用于显示数值和触发单击事件
      */
-    HoverButton *m_button;
+    BaseWidget *m_button;
 
     /**
      * @brief 鼠标覆盖时的标记
@@ -162,7 +162,7 @@ private:
     /**
      * @brief 底层的前景
      */
-    HoverButton *m_foreground;
+    BaseWidget *m_foreground;
 
 
     /**

@@ -5,13 +5,34 @@
 #include <QTime>
 #include <QDebug>
 #include <QFontDatabase>
+#include <QJsonDocument>
 
 #include "sudokusolver.h"
 
-#define margin 15              // 四周的边缘宽度
-#define gridSize 81            // 格子的大小
-#define halfSize gridSize / 2  // 半个格子的大小，也是按钮的高度
-#define spacing 5              // 九宫格之间的间隔
+/**
+ * @brief 加载颜色风格
+ * @return jsonObject的字典
+ */
+QJsonObject loadStyle()
+{
+    QString path = ":/styles/";
+    QDir directory(path);
+    QStringList files = directory.entryList(QStringList() << "*.json", QDir::Files);
+
+    QTime time;
+    time= QTime::currentTime();
+    qsrand(time.msec() + time.second() * 1000);
+    int n = qrand() % files.size();
+
+    QFile file(path + files[n]);
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    QByteArray data = file.readAll();
+    file.close();
+
+    QJsonDocument document = QJsonDocument::fromJson(data);
+    QJsonObject jsonObject = document.object();
+    return jsonObject;
+}
 
 QPushButton* createButton(QWidget* parent, QSize size, QString text)
 {
@@ -31,19 +52,23 @@ QPushButton* createButton(QWidget* parent, QSize size, QString text)
     button->setFont(buttonFont);
     button->setFixedSize(size);
     button->setGraphicsEffect(shadow_effect);
-
     return button;
 }
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), ui(new Ui::MainWindow)
   , m_sr(-1), m_sc(-1), m_switching(false), m_forcing(false)
 {
-    // 窗口设置
-    QColor color = QColor("#DDE2E5");
-    QPalette p = this->palette();
-    p.setColor(QPalette::Window,color);
-    this->setPalette(p);
+    /*********************************************/
+
+    auto style = loadStyle();
+    int margin              = style["margin"].toInt();              // 四周的边缘宽度
+    int gridSize            = style["gridSize"].toInt();            // 格子的大小
+    int spacing             = style["spacing"].toInt();             // 九宫格之间的间隔
+    QString topRightColor   = style["top_right_color"].toString();  // 背景色
+    QString bottomLeftColor = style["bottom_left_color"].toString();// 背景色
+    int halfSize            = gridSize / 2;                         // 半个格子的大小，也是按钮的高度
 
     /*********************************************/
 
@@ -75,6 +100,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
             GridWidget *grid = new GridWidget(r, c, gridSize, this);
             grid->move(margin + c * gridSize + c / 3 * spacing, margin + r * gridSize + r / 3 * spacing);
+            grid->setColorStyle(style["GridWidget"].toObject());
             m_grids[r][c] = grid;
 
             // 问题1：取消后立刻移到被取消的单元格，marker会出现，原因：off比hover里的on晚触发
@@ -173,6 +199,7 @@ MainWindow::MainWindow(QWidget *parent) :
     /***************************************/
 
     m_panel = new SelectPanel(gridSize, this);
+    m_panel->setColorStyle(style["SelectPanel"].toObject());
     connect(m_panel, &SelectPanel::finish, [&](int selected)
     {
         smartAssistOff(m_sr, m_sc);
@@ -188,6 +215,7 @@ MainWindow::MainWindow(QWidget *parent) :
     {
        Counter *counter = new Counter(num, gridSize, this);
        counter->move(margin + gridSize * 9 + halfSize, margin - gridSize + num * (space + gridSize));
+       counter->setColorStyle(style["Counter"].toObject());
        connect(counter, &Counter::hovered, [=]() {highlight(num, true);});
        connect(counter, &Counter::leave,   [=]() {highlight(num, false);});
        m_counters[num] = counter;
@@ -195,8 +223,21 @@ MainWindow::MainWindow(QWidget *parent) :
 
     loadRandomPuzzle();
 
+    /*********************************************/
+
+    // 窗口设置
+
     int minSize = gridSize * 10 + halfSize + 2 * margin;
     this->setMinimumSize(minSize, minSize);
+
+    QLinearGradient linearGrad(QPointF(0, minSize), QPointF(minSize, 0));
+    linearGrad.setColorAt(0, topRightColor);
+    linearGrad.setColorAt(1, bottomLeftColor);
+    QBrush brush(linearGrad);
+
+    QPalette p = this->palette();
+    p.setBrush(QPalette::Window, brush);
+    this->setPalette(p);
 }
 
 MainWindow::~MainWindow()
@@ -362,20 +403,16 @@ void MainWindow::loadRandomPuzzle()
         return;
     }
 
-    // 统计文件数量
-    QDir *dir = new QDir(":/puzzles");
-    QStringList filter;
-    QList<QFileInfo> *fileInfo = new QList<QFileInfo>(dir->entryInfoList(filter));
-    int count = fileInfo->count();  //文件个数
+    QString path = ":/puzzles/";
+    QDir directory(path);
+    QStringList files = directory.entryList(QStringList() << "*.txt", QDir::Files);
 
-    // 随机选取文件
     QTime time;
     time= QTime::currentTime();
     qsrand(time.msec() + time.second() * 1000);
-    int n = qrand() % count;
-    QString fileName = QString(":/puzzles/%1.txt").arg(n + 1);
+    int n = qrand() % files.size();
 
-    QFile file(fileName);
+    QFile file(path + files[n]);
     if(!file.open(QFile::ReadOnly))
     {
         return;

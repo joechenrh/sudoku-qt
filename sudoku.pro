@@ -30,7 +30,7 @@ INCLUDEPATH += \
 SOURCES += \
         main.cpp \
     src/mainwindow.cpp \
-    src/widgets/hoverbutton.cpp \
+    src/widgets/basewidget.cpp \
     src/widgets/selectpanel.cpp \
     src/widgets/gridwidget.cpp \
     src/widgets/gridmarker.cpp \
@@ -39,7 +39,7 @@ SOURCES += \
 HEADERS += \
     include/sudokusolver.h \
     include/mainwindow.h \
-    include/widgets/hoverbutton.h \
+    include/widgets/basewidget.h \
     include/widgets/selectpanel.h \
     include/widgets/gridwidget.h   \
     include/widgets/gridmarker.h \

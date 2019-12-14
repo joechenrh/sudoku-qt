@@ -1,4 +1,5 @@
 ﻿#include "counter.h"
+
 #include <QFontDatabase>
 
 Counter::Counter(int num, int size, QWidget *parent)
@@ -6,7 +7,7 @@ Counter::Counter(int num, int size, QWidget *parent)
 {
     this->setFixedSize(size, size);
 
-    QString baseStyle = "border-radius: %5px;color: %6; background: %7;";
+    QString baseStyle = "border-radius: %5px;color: %6; background-color: %7;";
 
     int lr = int(size * 0.45);  // radius of cntLabel
     int sr = int(size * 0.2);   // radius of numLabel
@@ -46,6 +47,7 @@ Counter::Counter(int num, int size, QWidget *parent)
     m_cntLabel->setGraphicsEffect(m_cntOpacity);
 
     // 下面这段全部完成以后就能删除了
+    /*
     m_style.num_color = "#E66F99" ;
     m_style.cnt_color_unhovered = "#FAFAFA";
     m_style.cnt_color_hovered = "FADFE8";
@@ -53,6 +55,7 @@ Counter::Counter(int num, int size, QWidget *parent)
     m_style.num_font_color = "#FAFAFA";
     m_cntLabel->setStyleSheet(m_cntStyle.arg(m_style.cnt_font_color).arg(m_style.cnt_color_unhovered));
     m_numLabel->setStyleSheet(m_numStyle.arg(m_style.num_font_color).arg(m_style.num_color));
+    */
 }
 
 

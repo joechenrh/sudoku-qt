@@ -1,13 +1,12 @@
 ﻿#include "gridwidget.h"
 
-#include <QDebug>
 #include <QFontDatabase>
 #include <QGraphicsDropShadowEffect>
 
 const int duration = 200;
 
 GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
-    : QWidget(parent), m_style(GridWidgetStyle()), m_value(0), m_numConflict(0)
+    : QWidget(parent), m_value(0), m_numConflict(0)
 {   
     // 设置单元格大小和阴影
     QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect(this);
@@ -17,7 +16,7 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
     this->setFixedSize(size, size);
 
     // 单元格的样式，四角的单元格要加圆角
-    m_backgroundStyle = QString("background-color:%1;border:1px solid #C9C9C9;");
+    m_backgroundStyle = QString("background-color:%1;border:1px solid %2;");
     if ((row == 0 || row == 8) && (col == 0 || col == 8))
     {
         m_backgroundStyle += QString("border-%1-%2-radius:%3px;")
@@ -30,7 +29,7 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
     m_background = new QLabel(this);
     m_background->setFixedSize(size, size);
 
-    m_foreground = new HoverButton(this);
+    m_foreground = new BaseWidget(this);
     m_foreground->setFixedSize(size, size);
 
     m_marker = new GridMarker(size, this);
@@ -45,7 +44,7 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
     QStringList strList(QFontDatabase::applicationFontFamilies(nIndex));
     QFont buttonFont = QFont(strList.at(0), size / 4);
 
-    m_button = new HoverButton(this);
+    m_button = new BaseWidget(this);
     m_button->setObjectName("buttonText");
     m_button->setFont(buttonFont);
     m_button->setFixedSize(buttonSize, buttonSize);
@@ -57,6 +56,7 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
     connect(m_button, SIGNAL(rightClicked()), this, SLOT(buttonRightClicked()));
 
     // 下面这段全部完成以后就能删除了
+    /*
     m_style.border_color[0] = "#5F5F5F";
     m_style.border_color[1] = "#FB78A5";
     m_style.border_radius[0] = 3;
@@ -83,6 +83,7 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
                             .arg(m_style.border_radius[1])
                             .arg(m_style.border_color[1])
                             .arg(m_style.font_color[1]));
+                            */
 }
 
 void GridWidget::setColorStyle(QJsonObject json)
@@ -93,13 +94,15 @@ void GridWidget::setColorStyle(QJsonObject json)
     m_style.border_radius[0] = json.value("border_radius_conflict").toInt();
     m_style.border_radius[1] = json.value("border_radius_noconflict").toInt();
 
-    m_style.font_color[0] = json.value("font_color_normal").toString();
-    m_style.font_color[1] = json.value("font_color_hovered").toString();
-    m_style.font_color[2] = json.value("font_color_unabled").toString();
+    m_style.font_color[0] = json.value("font_color_unabled").toString();
+    m_style.font_color[1] = json.value("font_color_normal").toString();
+    m_style.font_color[2] = json.value("font_color_hovered").toString();
 
     m_style.background_color_hovered = json.value("background_color_hovered").toString();
     m_style.background_color_unhovered = json.value("background_color_unhovered").toString();
     m_style.background_shadow_color = json.value("background_shadow_color").toString();
+
+    m_style.spacing_color = json.value("spacing_color").toString();
 
     //m_borderRadius = m_style.border_radius[m_numConflict == 0];
     //m_borderColor  = m_style.border_color[m_button->isEnabled()];
@@ -108,8 +111,8 @@ void GridWidget::setColorStyle(QJsonObject json)
     ((QGraphicsDropShadowEffect*)graphicsEffect())->setColor(m_style.background_shadow_color);
     m_marker->setMarkerColor(json.value("marker_color").toString());
     m_marker->setShadowColor(json.value("marker_color_shadow").toString());
-    m_foreground->setStyleSheet(m_backgroundStyle.arg(m_style.background_color_unhovered));
-    m_background->setStyleSheet(m_backgroundStyle.arg(m_style.background_color_hovered));
+    m_foreground->setStyleSheet(m_backgroundStyle.arg(m_style.background_color_unhovered).arg(m_style.spacing_color));
+    m_background->setStyleSheet(m_backgroundStyle.arg(m_style.background_color_hovered).arg(m_style.spacing_color));
     setButtonStyle(false);
     //m_button->setStyleSheet(m_buttonStyle
     //                        .arg(m_borderRadius)

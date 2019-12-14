@@ -1,0 +1,41 @@
+{
+    "margin": 15,
+    "gridSize": 81,
+    "spacing": 5,
+    "top_right_color": "#494949",
+    "bottom_left_color": "#3F3F3F",
+
+    "Counter": {
+        "num_color": "#31C18E",
+        "cnt_color_unhovered": "#FBFBFB",
+        "cnt_color_hovered": "#636363",
+        "cnt_font_color": "#3A3A3A",
+        "num_font_color": "#FBFBFB"
+    },
+    
+    "GridWidget": {
+        "border_color_enabled": "#4CE3AD",
+        "border_color_unabled": "#A7A7A7",
+        
+        "border_radius_conflict": 3,
+        "border_radius_noconflict": 0,
+
+        "font_color_unabled": "#A7A7A7",
+        "font_color_hovered": "#FBFBFB",
+        "font_color_normal": "	#4CE3AD",
+        
+        "background_color_hovered": "#636363",
+        "background_color_unhovered": "#6A6A6A",
+        "background_shadow_color": "#373737",
+        
+        "marker_color": "#4CE2AD",
+        "marker_color_shadow": "#595959",
+
+        "spacing_color": "#555555"
+    },
+    
+    "SelectPanel": {
+        "font_color": "#FBFBFB", 
+        "background_color": "#4CE3AD"    
+    }
+}

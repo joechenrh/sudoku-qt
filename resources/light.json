@@ -2,19 +2,19 @@
     "margin": 15,
     "gridSize": 81,
     "spacing": 5,
-    "top_right_color": "#DEE3E6",
-    "bottom_left_color": "#D7DBDE",
+    "top_right_color": "#E0B09A",
+    "bottom_left_color": "#F7E5CB",
 
     "Counter": {
-        "num_color": "#E66F99",
+        "num_color": "#6AC19A",
         "cnt_color_unhovered": "#FAFAFA",
-        "cnt_color_hovered": "#FADFE8",
+        "cnt_color_hovered": "#E5F5ED",
         "cnt_font_color": "#5F5F5F",
         "num_font_color": "#FAFAFA"
     },
     
     "GridWidget": {
-        "border_color_enabled": "#FB78A5",
+        "border_color_enabled": "#8EE4BE",
         "border_color_unabled": "#5F5F5F",
         
         "border_radius_conflict": 3,
@@ -22,20 +22,20 @@
 
         "font_color_unabled": "#5F5F5F",
         "font_color_hovered": "#FFFFFF",
-        "font_color_normal": "#FB78A5",
+        "font_color_normal": "#8EE4BE",
         
-        "background_color_hovered": "#FADFE8",
+        "background_color_hovered": "#E5F5ED",
         "background_color_unhovered": "#FAFAFA",
-        "background_shadow_color": "#C9C9C9",
+        "background_shadow_color": "#CFB09B",
         
-        "marker_color": "#FB78A5",
-        "marker_color_shadow": "#E6CED6",
+        "marker_color": "#8EE4BE",
+        "marker_color_shadow": "#D3E2DB",
         
-        "spacing_color": "#C9C9C9"
+        "spacing_color": "#B8C4BE"
     },
     
     "SelectPanel": {
         "font_color": "#FAFAFA", 
-        "background_color": "#FB78A5"    
+        "background_color": "#8EE4BE"    
     }
 }

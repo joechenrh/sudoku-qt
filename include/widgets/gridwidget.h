@@ -91,6 +91,8 @@ public:
      */
     void clearConflict();
 
+    int m_multiValue;
+
 /******************************/
 /* 下面8个都是为了传递信号        */
 
@@ -144,6 +146,8 @@ signals:
 private:
     GridWidgetStyle m_style;
 
+    void setButtonStyle(int entered);
+
     /**
      * @brief 最顶层的按钮，用于显示数值和触发单击事件
      */
@@ -164,36 +168,10 @@ private:
      */
     BaseWidget *m_foreground;
 
-
-    /**
-     * @brief 顶层按钮的stylesheet
-     */
-    // QString m_buttonStyle;
-
     /**
      * @brief m_backgroundStyle
      */
     QString m_backgroundStyle;
-
-
-    /**
-     * @brief 边框的宽度，只可能为0或3
-     * @details 单元格发生冲突时显示的白圈
-     * 就是通过控件的border属性来绘制的
-     */
-    //int m_borderRadius;
-
-    /**
-     * @brief 边框的颜色
-     * @see m_borderRadius
-     */
-    //QString m_borderColor;
-
-    /**
-     * @brief 字体的颜色
-     */
-    //QString m_fontColor;
-
 
     /**
      * @brief 当前单元格的值
@@ -205,8 +183,6 @@ private:
      * @details 当前行，列，九宫格内，值和自身值一样的单元格的数量
      */
     int m_numConflict;
-
-    void setButtonStyle(int entered);
 };
 
 #endif // GRIDWIDGET_H

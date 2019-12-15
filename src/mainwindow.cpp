@@ -48,6 +48,7 @@ QPushButton* createButton(QWidget* parent, QSize size, QString text)
     shadow_effect->setBlurRadius(2);
 
     QPushButton *button = new QPushButton(text);
+    button->setObjectName("createdButton");
     button->setParent(parent);
     button->setFont(buttonFont);
     button->setFixedSize(size);
@@ -62,13 +63,11 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     /*********************************************/
 
-    auto style = loadStyle();
-    int margin              = style["margin"].toInt();              // 四周的边缘宽度
-    int gridSize            = style["gridSize"].toInt();            // 格子的大小
-    int spacing             = style["spacing"].toInt();             // 九宫格之间的间隔
-    QString topRightColor   = style["top_right_color"].toString();  // 背景色
-    QString bottomLeftColor = style["bottom_left_color"].toString();// 背景色
-    int halfSize            = gridSize / 2;                         // 半个格子的大小，也是按钮的高度
+    auto colorStyle = loadStyle();
+    int gridSize = 81;           // 格子的大小
+    int margin   = 15;           // 四周的边缘宽度
+    int spacing  = 5;            // 九宫格之间的间隔
+    int halfSize = gridSize / 2; // 半个格子的大小，也是按钮的高度
 
     /*********************************************/
 
@@ -100,7 +99,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
             GridWidget *grid = new GridWidget(r, c, gridSize, this);
             grid->move(margin + c * gridSize + c / 3 * spacing, margin + r * gridSize + r / 3 * spacing);
-            grid->setColorStyle(style["GridWidget"].toObject());
+            grid->setColorStyle(colorStyle["GridWidget"].toObject());
             m_grids[r][c] = grid;
 
             // 问题1：取消后立刻移到被取消的单元格，marker会出现，原因：off比hover里的on晚触发
@@ -132,6 +131,7 @@ MainWindow::MainWindow(QWidget *parent) :
                 {
                     if (m_sr >= 0 && m_sc >= 0)
                     {
+                        m_grids[m_sr][m_sc]->m_multiValue = m_panel->m_selected;
                         smartAssistOff(m_sr, m_sc);
                     }
                     return;
@@ -144,11 +144,13 @@ MainWindow::MainWindow(QWidget *parent) :
                 if (!m_panel->isVisible() || m_panel->hide())
                 {
                     m_switching = false;
-                    m_panel->show(grid->geometry().x(), grid->geometry().y());
                     if (m_sr >= 0 && m_sc >= 0)
                     {
+                        m_grids[m_sr][m_sc]->m_multiValue = m_panel->m_selected;
                         smartAssistOff(m_sr, m_sc);
                     }
+                    m_panel->setSelected(grid->value() ? 0 : grid->m_multiValue);
+                    m_panel->show(grid->geometry().x(), grid->geometry().y());
                     grid->leave();
                     smartAssistOn(r, c);
                     m_sr = r;
@@ -161,10 +163,10 @@ MainWindow::MainWindow(QWidget *parent) :
     /***************************************/
     // 按钮
     // 所有按钮的样式，圆角等属性每个按钮自己设定
-    this->setStyleSheet("MainWindow QPushButton{background-color:#FFFFFF;color:#5F5F5F;}"
-                        "MainWindow QPushButton:hover{background-color:rgb(236, 236, 236);}"
-                        "MainWindow QPushButton:pressed{background-color:rgb(222, 222, 222);}"
-                        "MainWindow QPushButton:!enabled{background-color:rgb(200, 200, 200);}");
+    this->setStyleSheet("QPushButton#createdButton{background-color:#FFFFFF;color:#5F5F5F;}"
+                        "QPushButton#createdButton:hover{background-color:rgb(236, 236, 236);}"
+                        "QPushButton#createdButton:pressed{background-color:rgb(222, 222, 222);}"
+                        "QPushButton#createdButton:!enabled{background-color:rgb(200, 200, 200);}");
 
     // 加载按钮
     QPushButton *loadButton = createButton(this, QSize(gridSize * 3, gridSize), "Load");
@@ -187,35 +189,38 @@ MainWindow::MainWindow(QWidget *parent) :
     // 回退按钮
     m_undoButton = createButton(this, QSize(halfSize, gridSize), "<");
     m_undoButton->move(margin + gridSize * 9 + halfSize, margin + gridSize * 9 + halfSize);
-    m_undoButton->setStyleSheet(QString("border-top-left-radius:%1px;border-bottom-left-radius:%1px;").arg(halfSize));
+    m_undoButton->setStyleSheet(QString("border-top-left-radius:%1px;border-bottom-left-radius:%1px;").arg(halfSize / 2));
     connect(m_undoButton, SIGNAL(clicked()), this, SLOT(undo()));
 
     // 重做按钮
     m_redoButton = createButton(this, QSize(halfSize, gridSize), ">");
     m_redoButton->move(margin + gridSize * 10, margin + gridSize * 9 + halfSize);
-    m_redoButton->setStyleSheet(QString("border-top-right-radius:%1px;border-bottom-right-radius:%1px;").arg(halfSize));
+    m_redoButton->setStyleSheet(QString("border-top-right-radius:%1px;border-bottom-right-radius:%1px;").arg(halfSize / 2));
     connect(m_redoButton, SIGNAL(clicked()), this, SLOT(redo()));
 
     /***************************************/
 
     m_panel = new SelectPanel(gridSize, this);
-    m_panel->setColorStyle(style["SelectPanel"].toObject());
+    m_panel->setColorStyle(colorStyle["SelectPanel"].toObject());
     connect(m_panel, &SelectPanel::finish, [&](int selected)
     {
+        m_grids[m_sr][m_sc]->m_multiValue = 0;
+        m_panel->m_selected = 0;
+
         smartAssistOff(m_sr, m_sc);
         receiveResult(selected);
-
         m_forcing = true;
         m_panel->hide();
         m_forcing = false;
     });
 
     int space = std::min(spacing / 10, 2);
+    auto counterStyle = colorStyle["Counter"].toObject();
     for (int num = 1; num <= 9; ++num)
     {
        Counter *counter = new Counter(num, gridSize, this);
        counter->move(margin + gridSize * 9 + halfSize, margin - gridSize + num * (space + gridSize));
-       counter->setColorStyle(style["Counter"].toObject());
+       counter->setColorStyle(counterStyle);
        connect(counter, &Counter::hovered, [=]() {highlight(num, true);});
        connect(counter, &Counter::leave,   [=]() {highlight(num, false);});
        m_counters[num] = counter;
@@ -231,8 +236,8 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setMinimumSize(minSize, minSize);
 
     QLinearGradient linearGrad(QPointF(0, minSize), QPointF(minSize, 0));
-    linearGrad.setColorAt(0, topRightColor);
-    linearGrad.setColorAt(1, bottomLeftColor);
+    linearGrad.setColorAt(0, colorStyle["top_right_color"].toString());
+    linearGrad.setColorAt(1, colorStyle["bottom_left_color"].toString());
     QBrush brush(linearGrad);
 
     QPalette p = this->palette();
@@ -287,7 +292,7 @@ void MainWindow::changeNumber(int r, int c, int previous, int selected)
 {
     m_grids[r][c]->setValue(selected);
 
-    int num = 0;
+    int conflicts = 0;
 
     // 冲突检测，将和旧值相同的格子冲突数都减去1
     if (previous > 0)
@@ -299,7 +304,7 @@ void MainWindow::changeNumber(int r, int c, int previous, int selected)
             if (m_grids[pair.first][pair.second]->value() == previous)
             {
                 m_grids[pair.first][pair.second]->changeConflict(-1);
-                --num;
+                --conflicts;
             }
         }
     }
@@ -314,12 +319,12 @@ void MainWindow::changeNumber(int r, int c, int previous, int selected)
             if (m_grids[pair.first][pair.second]->value() == selected)
             {
                 m_grids[pair.first][pair.second]->changeConflict(1);
-                ++num;
+                ++conflicts;
             }
         }
     }
 
-    m_grids[r][c]->changeConflict(num);
+    m_grids[r][c]->changeConflict(conflicts);
 }
 
 void MainWindow::clearGrid(int r, int c)
@@ -413,10 +418,10 @@ void MainWindow::loadRandomPuzzle()
     int n = qrand() % files.size();
 
     QFile file(path + files[n]);
-    if(!file.open(QFile::ReadOnly))
-    {
-        return;
-    }
+    file.open(QFile::ReadOnly);
+    QString array = file.readAll();
+    QStringList rows = array.split('\n');
+    file.close();
 
     QVector<int> counts(10, 0);
     for (auto &set : m_numPositions)
@@ -425,8 +430,6 @@ void MainWindow::loadRandomPuzzle()
     }
 
     int val;
-    QString array = file.readAll();
-    QStringList rows = array.split('\n');
     for (int r = 0; r < 9; r++)
     {
         QStringList cols = rows.at(r).split(' ');

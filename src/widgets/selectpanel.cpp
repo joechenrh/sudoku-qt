@@ -10,11 +10,8 @@
 
 const int duration = 200;
 
-#define BACKGROUND_COLOR 0
-#define FONT_COLOR 0
-
 SelectPanel::SelectPanel(int size, QWidget *parent)
-    : QWidget(parent), m_selected(QVector<int>(10, 0))
+    : QWidget(parent), m_selected(0)
 {
     this->setFixedSize(size, size);
     QWidget::hide();
@@ -22,11 +19,7 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
     int nIndex = QFontDatabase::addApplicationFont(":/fonts/ARLRDBD.TTF");
     QStringList strList(QFontDatabase::applicationFontFamilies(nIndex));
 
-    QFont hoverFont = QFont(strList.at(0), 18);
-    hoverFont.setBold(true);
-
     QFont normalFont = QFont(strList.at(0), 14);
-    normalFont.setPixelSize(14);
     normalFont.setPointSize(14);
 
     m_background = new PanelBase(size, this);
@@ -48,7 +41,7 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
             button->setText(QString::number(num));
             button->move(buttonSize * c, buttonSize * r);
             button->setFixedSize(buttonSize, buttonSize);
-            button->setOpacity(0.7);
+            button->setOpacity(0.75);
             m_buttons.push_back(button);
 
             connect(button, &BaseWidget::hovered, [=]()
@@ -57,12 +50,13 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
                     button->zoomIn();
             });
             connect(button, &BaseWidget::leaved,  [=]() { button->zoomOut();});
-            connect(button, &BaseWidget::clicked, [=](){ emit finish(r * 3 + c + 1); });
+            connect(button, &BaseWidget::clicked, [=](){ emit finish(num); });
             connect(button, &BaseWidget::rightClicked, [=]()
             {
                 // Todo: 调整为用一个int型储存
-                m_selected[num] = 1 - m_selected[num];
-                button->setOpacity(m_selected[num] ? 1.0 : 0.7);
+                int tmp = 1 << (num - 1);
+                m_selected ^= tmp;
+                button->setOpacity(m_selected & tmp ? 1.0 : 0.75);
             });
         }
     }
@@ -75,9 +69,10 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
 
     m_hideAnimation = new QPropertyAnimation(m_background, "geometry");
     m_hideAnimation->setEasingCurve(QEasingCurve::OutQuad);
-    m_hideAnimation->setDuration(125);
+    m_hideAnimation->setDuration(150);
     m_hideAnimation->setStartValue(QRect(0, 0, size, size));
-    m_hideAnimation->setEndValue(QRect(size / 2 - 4, size / 2 - 4, 9, 9));
+    int w = size / 10 * 2 + 1;
+    m_hideAnimation->setEndValue(QRect((size - w) / 2, (size - w) / 2, w, w));
 
     setStyleSheet(QString("BaseWidget#panelButton{color:#FBFBFB;};"));
 }
@@ -93,10 +88,6 @@ bool SelectPanel::isVisible() const
     return QWidget::isVisible();
 }
 
-void SelectPanel::initialize()
-{
-
-}
 
 bool SelectPanel::show(int x, int y)
 {
@@ -115,7 +106,6 @@ bool SelectPanel::show(int x, int y)
     }
 
     this->move(x, y);
-    this->initialize();
 
     QWidget::show();
     m_container->show();
@@ -143,16 +133,14 @@ bool SelectPanel::hide()
     return true;
 }
 
-void SelectPanel::setSelected(QList<int> list)
+void SelectPanel::setSelected(int value)
 {
-    for (auto &v : m_selected)
+    qDebug() << value;
+    m_selected = value;
+    for (auto &button : m_buttons)
     {
-        v = 0;
-    }
-    for (auto v : list)
-    {
-        m_selected[v - 1] = 1;
-        m_buttons[v - 1];
+        button->setOpacity(value % 2 ? 1.0 : 0.75);
+        value /= 2;
     }
 }
 

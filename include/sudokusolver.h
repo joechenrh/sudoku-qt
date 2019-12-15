@@ -6,6 +6,8 @@
 
 
 #include <QVector>
+#include <QDebug>
+
 #include <iostream>
 
 enum resType {SOLVED, UNSOLVED, FAILED};

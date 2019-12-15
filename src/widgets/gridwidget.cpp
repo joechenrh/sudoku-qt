@@ -6,7 +6,7 @@
 const int duration = 200;
 
 GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
-    : QWidget(parent), m_value(0), m_numConflict(0)
+    : QWidget(parent), m_multiValue(0), m_value(0), m_numConflict(0)
 {   
     // 设置单元格大小和阴影
     QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect(this);
@@ -54,36 +54,6 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
 
     connect(m_button, SIGNAL(clicked()),      this, SLOT(buttonClicked()));
     connect(m_button, SIGNAL(rightClicked()), this, SLOT(buttonRightClicked()));
-
-    // 下面这段全部完成以后就能删除了
-    /*
-    m_style.border_color[0] = "#5F5F5F";
-    m_style.border_color[1] = "#FB78A5";
-    m_style.border_radius[0] = 3;
-    m_style.border_radius[1] = 0;
-    m_style.font_color[0] = "#5F5F5F";
-    m_style.font_color[1] = "#FB78A5";
-    m_style.font_color[2] = "#FFFFFF";
-
-    m_style.background_color_hovered = "#FADFE8";
-    m_style.background_color_unhovered = "#FAFAFA";
-    m_style.background_shadow_color = "#C9C9C9";
-
-    // 初始风格
-    // m_borderRadius = m_style.border_radius[1];
-    // m_borderColor  = m_style.border_color[1];
-    // m_fontColor    = m_style.font_color[1];
-
-    m_foreground->setStyleSheet(m_backgroundStyle.arg(m_style.background_color_unhovered));
-    m_background->setStyleSheet(m_backgroundStyle.arg(m_style.background_color_hovered));
-    shadow->setColor(m_style.background_shadow_color);
-    m_marker->setMarkerColor("#FB78A5");
-    m_marker->setShadowColor("#E6CED6");
-    m_button->setStyleSheet(QString("border:%1px solid %2;color:%3;")
-                            .arg(m_style.border_radius[1])
-                            .arg(m_style.border_color[1])
-                            .arg(m_style.font_color[1]));
-                            */
 }
 
 void GridWidget::setColorStyle(QJsonObject json)

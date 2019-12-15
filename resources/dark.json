@@ -7,10 +7,8 @@
 
     "Counter": {
         "num_color": "#31C18E",
-        "cnt_color_unhovered": "#FBFBFB",
         "cnt_color_hovered": "#636363",
-        "cnt_font_color": "#3A3A3A",
-        "num_font_color": "#FBFBFB"
+        "cnt_font_color": "#3A3A3A"
     },
     
     "GridWidget": {

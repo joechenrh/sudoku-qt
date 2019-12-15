@@ -87,15 +87,14 @@ public:
      * @brief setSelected 设置初始值
      * @param list 当前格子已选择的值
      */
-    void setSelected(QList<int> list);
-
-private:
-    void initialize();
+    void setSelected(int value);
 
     /**
      * @brief 记录多选的数据，暂未使用
      */
-    QVector<int> m_selected;
+    int m_selected;
+
+private:
 
     QPropertyAnimation *m_showAnimation;
 

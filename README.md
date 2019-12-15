@@ -4,7 +4,7 @@ Sudoku game with solver based on Qt
 
 The interface refers to steam game [sudoku universe](https://store.steampowered.com/app/733070/Sudoku_Universe/)
 
-![Interface](../images/sudoku.gif)
+![Interface](../dev/images/sudoku.gif)
 
 ## Features:
 

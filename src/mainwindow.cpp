@@ -453,7 +453,6 @@ void MainWindow::loadRandomPuzzle()
     m_redoButton->setEnabled(false);
 }
 
-// 没有结果时的处理
 void MainWindow::solve()
 {
     if (m_panel->isVisible())
@@ -472,8 +471,12 @@ void MainWindow::solve()
 
     SudokuSolver solver(puzzle);
     solver.Solve();
+    if (solver.m_num == 0)
+    {
+        return;
+    }
 
-    for (int num = 0; num <= 9; ++num)
+    for (int num = 1; num <= 9; ++num)
     {
         m_numPositions[num].clear();
         m_counters[num]->setCount(0);

@@ -135,7 +135,6 @@ bool SelectPanel::hide()
 
 void SelectPanel::setSelected(int value)
 {
-    qDebug() << value;
     m_selected = value;
     for (auto &button : m_buttons)
     {

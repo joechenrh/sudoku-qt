@@ -82,7 +82,7 @@ void SelectPanel::setColorStyle(QJsonObject json)
     m_background->setColor(json.value("background_color").toString());
 }
 
-
+// Todo:添加canHide和canShow两个函数，将判断从实际操作的函数中剥离出来
 bool SelectPanel::isVisible() const
 {
     return QWidget::isVisible();
@@ -111,6 +111,12 @@ bool SelectPanel::show(int x, int y)
     m_container->show();
     m_showAnimation->start();
     return true;
+}
+
+bool SelectPanel::canHide()
+{
+    return m_showAnimation->state() == QAbstractAnimation::Stopped &&
+           m_hideAnimation->state() == QAbstractAnimation::Stopped;
 }
 
 bool SelectPanel::hide()

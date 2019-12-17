@@ -60,11 +60,15 @@ public:
      */
     void setValue(int value);
 
+    void setMultiValue(int value);
+
     /**
      * @brief 返回选中的值
      * @return 该格选中的值，如没选中，返回0
      */
     int value() const;
+
+    int multiValue() const;
 
     void enter();
 
@@ -149,9 +153,16 @@ private:
     void setButtonStyle(int entered);
 
     /**
-     * @brief 最顶层的按钮，用于显示数值和触发单击事件
+     * @brief 最顶层的按钮，用于触发单击事件
      */
     BaseWidget *m_button;
+
+    QVector<QLabel*> m_multiGrids;
+
+    /**
+     * @brief QLabel，用于显示数值
+     */
+    QLabel *m_singleGrid;
 
     /**
      * @brief 鼠标覆盖时的标记

@@ -36,22 +36,37 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
     m_marker->setDuration(duration);
     m_marker->setGeometry(QRect(size / 2, size / 2, 1, 1));
 
-    int buttonMargin = size / 5 - 5;
-    int buttonSize = size - 2 * buttonMargin;
-    // m_buttonStyle = QString("border:%1px solid %2;color:%3;");
+    int labelMargin = size / 5 - 5;
+    int labelSize = size - 2 * labelMargin;
 
     int nIndex = QFontDatabase::addApplicationFont(":/fonts/ARLRDBD.TTF");
     QStringList strList(QFontDatabase::applicationFontFamilies(nIndex));
-    QFont buttonFont = QFont(strList.at(0), size / 4);
+
+    m_singleGrid = new QLabel(this);
+    m_singleGrid->setAlignment(Qt::AlignCenter);
+    m_singleGrid->setObjectName("buttonText");
+    m_singleGrid->setFont(QFont(strList.at(0), size / 4));
+    m_singleGrid->setFixedSize(labelSize, labelSize);
+    m_singleGrid->move(labelMargin, labelMargin);
+    setStyleSheet(QString("#buttonText{border-radius:%1px;background-color:transparent;}").arg(labelSize / 2));
+
+    QWidget *container = new QWidget(this);
+    container->setFixedSize(75, 75);
+    for (int i = 0; i < 9; i++)
+    {
+        QLabel *multiGrid = new QLabel(container);
+        multiGrid->setAlignment(Qt::AlignCenter);
+        multiGrid->setFont(QFont(strList.at(0), size / 6));
+        multiGrid->setText(QString::number(i + 1));
+        multiGrid->setFixedSize(size / 3, size / 3);
+        multiGrid->move((size / 3) * (i % 3), (size / 3) * (i / 3));
+        multiGrid->hide();
+        m_multiGrids.push_back(multiGrid);
+    }
 
     m_button = new BaseWidget(this);
-    m_button->setObjectName("buttonText");
-    m_button->setFont(buttonFont);
-    m_button->setFixedSize(buttonSize, buttonSize);
-    m_button->move(buttonMargin, buttonMargin);
-
-    setStyleSheet(QString("#buttonText{border-radius:%1px;background-color:transparent;}").arg(buttonSize / 2));
-
+    m_button->setFixedSize(size, size);
+    m_button->setStyleSheet("background-color:transparent;");
     connect(m_button, SIGNAL(clicked()),      this, SLOT(buttonClicked()));
     connect(m_button, SIGNAL(rightClicked()), this, SLOT(buttonRightClicked()));
 }
@@ -66,7 +81,6 @@ void GridWidget::setColorStyle(QJsonObject json)
 
     m_style.font_color[0] = json.value("font_color_unabled").toString();
     m_style.font_color[1] = json.value("font_color_normal").toString();
-    //m_style.font_color[2] = json.value("font_color_hovered").toString();
     m_style.font_color[2] = "#FBFBFB";
 
     m_style.background_color_hovered = json.value("background_color_hovered").toString();
@@ -79,7 +93,12 @@ void GridWidget::setColorStyle(QJsonObject json)
     //m_borderColor  = m_style.border_color[m_button->isEnabled()];
     //m_fontColor    = m_style.font_color[m_button->isEnabled()];
 
-    ((QGraphicsDropShadowEffect*)graphicsEffect())->setColor(m_style.background_shadow_color);
+    for (auto grid : m_multiGrids)
+    {
+        grid->setStyleSheet(QString("color:%1").arg(m_style.font_color[1]));
+    }
+
+    (static_cast<QGraphicsDropShadowEffect*>(graphicsEffect()))->setColor(m_style.background_shadow_color);
     // m_marker->setMarkerColor(json.value("marker_color").toString());
     m_marker->setMarkerColor(json.value("font_color_normal").toString());
     m_marker->setShadowColor(json.value("marker_color_shadow").toString());
@@ -110,10 +129,37 @@ bool GridWidget::isEnabled() const
     return m_button->isEnabled();
 }
 
+void GridWidget::setMultiValue(int value)
+{
+    m_multiValue = value;
+
+    if (value == 0)
+    {
+        m_singleGrid->show();
+        for (int i = 0; i < 9; i++)
+        {
+            m_multiGrids[i]->hide();
+        }
+        return;
+    }
+
+    m_singleGrid->hide();
+    for (int i = 0; i < 9; i++)
+    {
+        m_multiGrids[i]->setVisible(value % 2);
+        value /= 2;
+    }
+}
+
+int GridWidget::multiValue() const
+{
+    return m_multiValue;
+}
+
 void GridWidget::setValue(int value)
 {
     m_value = value;
-    m_button->setText(value == 0 ? "" : QString::number(value));
+    m_singleGrid->setText(value == 0 ? "" : QString::number(value));
 }
 
 int GridWidget::value() const
@@ -201,8 +247,8 @@ void GridWidget::leave()
 void GridWidget::setButtonStyle(int entered)
 {
     // 只有isEnabled()为true时entered才会为1
-    m_button->setStyleSheet(QString("border:%1px solid %2;color:%3;")
-                            .arg(m_style.border_radius[m_numConflict == 0])
-                            .arg(m_style.border_color[m_button->isEnabled()])
-                            .arg(m_style.font_color[m_button->isEnabled() + entered]));
+    m_singleGrid->setStyleSheet(QString("border:%1px solid %2;color:%3;")
+                                .arg(m_style.border_radius[m_numConflict == 0])
+                                .arg(m_style.border_color[m_button->isEnabled()])
+                                .arg(m_style.font_color[m_button->isEnabled() + entered]));
 }

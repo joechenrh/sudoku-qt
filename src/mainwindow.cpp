@@ -127,13 +127,21 @@ MainWindow::MainWindow(QWidget *parent) :
 
             connect(grid, &GridWidget::rightClicked, [=]()
             {
-                if (m_panel->isVisible() && m_panel->hide())
+                if (m_panel->isVisible())
                 {
-                    if (m_sr >= 0 && m_sc >= 0)
+                    if (!m_panel->canHide())
                     {
-                        m_grids[m_sr][m_sc]->m_multiValue = m_panel->m_selected;
-                        smartAssistOff(m_sr, m_sc);
+                        return;
                     }
+
+                    // m_selected为0表示啥都没选
+                    if (m_panel->m_selected > 0)
+                    {
+                        changeNumber(m_sr, m_sc, m_grids[m_sr][m_sc]->value(), 0);
+                        m_grids[m_sr][m_sc]->setMultiValue(m_panel->m_selected);
+                    }
+                    m_panel->hide();
+                    smartAssistOff(m_sr, m_sc);
                     return;
                 }
                 clearGrid(r, c);
@@ -144,6 +152,7 @@ MainWindow::MainWindow(QWidget *parent) :
                 if (!m_panel->isVisible() || m_panel->hide())
                 {
                     m_switching = false;
+                    // m_sr和m_sc都小于0表示第一次打开窗体，所以没有上次打开的位置
                     if (m_sr >= 0 && m_sc >= 0)
                     {
                         m_grids[m_sr][m_sc]->m_multiValue = m_panel->m_selected;
@@ -204,7 +213,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_panel->setColorStyle(colorStyle["SelectPanel"].toObject());
     connect(m_panel, &SelectPanel::finish, [&](int selected)
     {
-        m_grids[m_sr][m_sc]->m_multiValue = 0;
+        m_grids[m_sr][m_sc]->setMultiValue(0);
         m_panel->m_selected = 0;
 
         smartAssistOff(m_sr, m_sc);

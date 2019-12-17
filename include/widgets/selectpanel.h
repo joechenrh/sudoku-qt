@@ -77,6 +77,8 @@ public:
      */
     bool hide();
 
+    bool canHide();
+
     /**
      * @brief isVisible
      * @return

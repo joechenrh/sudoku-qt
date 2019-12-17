@@ -138,12 +138,13 @@ MainWindow::MainWindow(QWidget *parent) :
                     return;
                 }
 
-                // m_selected不为0就要把之前的值先清空
-                if (m_panel->m_selected > 0)
+                // 从有唯一值到多选值也看做是一步操作
+                if (m_panel->m_selected && m_grids[m_sr][m_sc]->value())
                 {
-                    changeNumber(m_sr, m_sc, m_grids[m_sr][m_sc]->value(), 0);
-                    m_grids[m_sr][m_sc]->setMultiValue(m_panel->m_selected);
+                    receiveResult(0);
                 }
+
+                m_grids[m_sr][m_sc]->setMultiValue(m_panel->m_selected);
                 m_panel->hide();
                 smartAssistOff(m_sr, m_sc);
             });

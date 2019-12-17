@@ -158,6 +158,14 @@ int GridWidget::multiValue() const
 
 void GridWidget::setValue(int value)
 {
+    if (value && m_multiValue)
+    {
+        m_singleGrid->show();
+        for (auto &grid : m_multiGrids)
+        {
+            grid->hide();
+        }
+    }
     m_value = value;
     m_singleGrid->setText(value == 0 ? "" : QString::number(value));
 }

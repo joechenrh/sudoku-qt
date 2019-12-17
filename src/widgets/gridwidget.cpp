@@ -246,6 +246,12 @@ void GridWidget::leave()
 
 void GridWidget::setButtonStyle(int entered)
 {
+    // m_value为0就不用修改m_singleGrid的stylesheet
+    if (m_value == 0)
+    {
+        m_multiGrids[4]->setStyleSheet(QString("color:%1;").arg(entered ? "#FBFBBF": m_style.font_color[1]));
+    }
+
     // 只有isEnabled()为true时entered才会为1
     m_singleGrid->setStyleSheet(QString("border:%1px solid %2;color:%3;")
                                 .arg(m_style.border_radius[m_numConflict == 0])

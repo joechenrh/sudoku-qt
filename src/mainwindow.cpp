@@ -127,24 +127,25 @@ MainWindow::MainWindow(QWidget *parent) :
 
             connect(grid, &GridWidget::rightClicked, [=]()
             {
-                if (m_panel->isVisible())
+                if (!m_panel->isVisible())
                 {
-                    if (!m_panel->canHide())
-                    {
-                        return;
-                    }
-
-                    // m_selected为0表示啥都没选
-                    if (m_panel->m_selected > 0)
-                    {
-                        changeNumber(m_sr, m_sc, m_grids[m_sr][m_sc]->value(), 0);
-                        m_grids[m_sr][m_sc]->setMultiValue(m_panel->m_selected);
-                    }
-                    m_panel->hide();
-                    smartAssistOff(m_sr, m_sc);
+                    clearGrid(r, c);
                     return;
                 }
-                clearGrid(r, c);
+
+                if (!m_panel->canHide())
+                {
+                    return;
+                }
+
+                // m_selected不为0就要把之前的值先清空
+                if (m_panel->m_selected > 0)
+                {
+                    changeNumber(m_sr, m_sc, m_grids[m_sr][m_sc]->value(), 0);
+                    m_grids[m_sr][m_sc]->setMultiValue(m_panel->m_selected);
+                }
+                m_panel->hide();
+                smartAssistOff(m_sr, m_sc);
             });
 
             connect(grid, &GridWidget::clicked, [=](){
@@ -367,6 +368,7 @@ void MainWindow::clearAll()
         for (int c = 0; c < 9; c++)
         {
             int value = m_grids[r][c]->value();
+            m_grids[r][c]->setMultiValue(0);
             if (m_grids[r][c]->isEnabled() && value)
             {
                 ++counts[value];
@@ -496,6 +498,7 @@ void MainWindow::solve()
         for (int c = 0; c < 9; c++)
         {
             int value = solver.m_res[r][c];
+            m_grids[r][c]->setMultiValue(0);
             m_grids[r][c]->setValue(value);
             m_numPositions[value].insert(qMakePair(r, c));
         }

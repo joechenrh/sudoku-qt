@@ -80,10 +80,17 @@ private:
     int m_indent;
 
     /**
+     * @brief 动画持续时间
+     */
+    int m_duration;
+
+    /**
      * @brief 控制放大缩小的动画
      */
-    QPropertyAnimation *m_scaleAnimation;
+    QPropertyAnimation *m_hideAnimation;
 
+
+    QPropertyAnimation *m_showAnimation;
 protected:
     /**
      * @brief 重载paintEvent函数

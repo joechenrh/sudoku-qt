@@ -95,7 +95,7 @@ signals:
 
 private:
     /**
-     * @brief m_opacity
+     * @brief 透明度
      */
     QGraphicsOpacityEffect *m_opacity;
 
@@ -105,7 +105,7 @@ private:
     double m_fontSize;
 
     /**
-     * @brief 淡出动画
+     * @brief 淡入淡出动画
      */
     QPropertyAnimation *m_animation;
 

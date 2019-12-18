@@ -25,7 +25,7 @@ class GridWidget : public QWidget
 
     struct GridWidgetStyle
     {
-        int border_radius[2];
+        QString border_radius[2];
         QString border_color[2];
         QString font_color[3];
 
@@ -194,6 +194,11 @@ private:
      * @details 当前行，列，九宫格内，值和自身值一样的单元格的数量
      */
     int m_numConflict;
+
+    QString m_borderRadius;
+    QString m_borderColor;
+    QString m_fontColor;
+    QString m_buttonStyle;
 };
 
 #endif // GRIDWIDGET_H

@@ -127,18 +127,20 @@ MainWindow::MainWindow(QWidget *parent) :
 
             connect(grid, &GridWidget::rightClicked, [=]()
             {
+                // 菜单未打开就清空
                 if (!m_panel->isVisible())
                 {
                     clearGrid(r, c);
                     return;
                 }
 
+                // 如果菜单关闭失败（正在关闭/打开）直接退出
                 if (!m_panel->canHide())
                 {
                     return;
                 }
 
-                // 从有唯一值到多选值也看做是一步操作
+                // 从有唯一值到有多选值也看做是一步操作
                 if (m_panel->m_selected && m_grids[m_sr][m_sc]->value())
                 {
                     receiveResult(0);
@@ -155,6 +157,8 @@ MainWindow::MainWindow(QWidget *parent) :
                 {
                     m_switching = false;
                     // m_sr和m_sc都小于0表示第一次打开窗体，所以没有上次打开的位置
+                    // 这里的逻辑还要再看看游戏里的逻辑是怎么样的
+
                     if (m_sr >= 0 && m_sc >= 0)
                     {
                         m_grids[m_sr][m_sc]->m_multiValue = m_panel->m_selected;
@@ -167,6 +171,7 @@ MainWindow::MainWindow(QWidget *parent) :
                     m_sr = r;
                     m_sc = c;
                 }
+                m_switching = false;
             });
         }
     }
@@ -233,7 +238,7 @@ MainWindow::MainWindow(QWidget *parent) :
        counter->move(margin + gridSize * 9 + halfSize, margin - gridSize + num * (space + gridSize));
        counter->setColorStyle(counterStyle);
        connect(counter, &Counter::hovered, [=]() {highlight(num, true);});
-       connect(counter, &Counter::leave,   [=]() {highlight(num, false);});
+       connect(counter, &Counter::leaved,  [=]() {highlight(num, false);});
        m_counters[num] = counter;
     }
 

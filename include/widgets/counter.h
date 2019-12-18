@@ -21,10 +21,11 @@ class Counter : public QWidget
 
     struct CounterStyle
     {
-        QString cnt_color_unhovered;      // cntLabel的背景色
+        // cntLabel的背景色固定为白色(#FBFBFB)
         QString cnt_color_hovered;        // cntLabel覆盖时的背景色
         QString cnt_font_color_unhovered; // cntLabel字体颜色
         QString cnt_font_color_hovered;   // cntLabel覆盖时的字体颜色
+
     };
 
 public:
@@ -61,7 +62,6 @@ protected:
      */
     void leaveEvent(QEvent*);
 
-
 signals:
     /**
      * @brief hovered 鼠标进入时触发的信号
@@ -71,7 +71,7 @@ signals:
     /**
      * @brief leave 鼠标离开时触发的信号
      */
-    void leave();
+    void leaved();
 
 private:
     /**

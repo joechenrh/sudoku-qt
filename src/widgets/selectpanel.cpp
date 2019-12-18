@@ -13,6 +13,7 @@ const int duration = 200;
 SelectPanel::SelectPanel(int size, QWidget *parent)
     : QWidget(parent), m_selected(0)
 {
+
     this->setFixedSize(size, size);
     QWidget::hide();
 
@@ -71,7 +72,7 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
     m_hideAnimation->setEasingCurve(QEasingCurve::OutQuad);
     m_hideAnimation->setDuration(150);
     m_hideAnimation->setStartValue(QRect(0, 0, size, size));
-    int w = size / 10 * 2 + 1;
+    int w = (size / 5) & -2;
     m_hideAnimation->setEndValue(QRect((size - w) / 2, (size - w) / 2, w, w));
 
     setStyleSheet(QString("BaseWidget#panelButton{color:#FBFBFB;};"));

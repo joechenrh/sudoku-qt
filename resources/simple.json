@@ -12,7 +12,7 @@
     },
     
     "GridWidget": {
-        "border_radius_conflict": 3,
+        "border_radius_conflict": "3",
 
         "font_color_unabled": "#5F5F5F",
         "font_color_normal": "#FB78A5",

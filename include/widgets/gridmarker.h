@@ -10,6 +10,7 @@
 #include <QLabel>
 #include <QPainter>
 #include <QPropertyAnimation>
+#include <QGraphicsDropShadowEffect>
 
 /**
  * @brief The GridMarker class 鼠标进入九宫格时显示的圆形效果由这个控件绘制
@@ -52,6 +53,13 @@ public:
      */
     void setShadowColor(const QColor &color);
 
+protected:
+    /**
+     * @brief 重载paintEvent函数
+     * @details 实现在控件上绘制一个圆形和一层阴影
+     */
+    void paintEvent(QPaintEvent*);
+
 private:
     /**
      * @brief 标记的颜色
@@ -60,18 +68,14 @@ private:
 
     /**
      * @brief 阴影的颜色
+     * @details 由于不是通过stylesheet绘制的圆形，所以不能通过
      */
     QColor m_shadowColor;
 
     /**
      * @brief 缩放的最大尺寸
      */
-    QRect m_maxSize;
-
-    /**
-     * @brief 缩放的最小尺寸
-     */
-    QRect m_minSize;
+    int m_maxSize;
 
     /**
      * @brief 控制绘制标记时的缩进
@@ -80,23 +84,15 @@ private:
     int m_indent;
 
     /**
-     * @brief 动画持续时间
-     */
-    int m_duration;
-
-    /**
-     * @brief 控制放大缩小的动画
+     * @brief 控制缩小的动画
      */
     QPropertyAnimation *m_hideAnimation;
 
-
-    QPropertyAnimation *m_showAnimation;
-protected:
     /**
-     * @brief 重载paintEvent函数
-     * @details 实现在控件上绘制一个圆形和一层阴影
+     * @brief 控制放大的动画
      */
-    void paintEvent(QPaintEvent*);
+    QPropertyAnimation *m_showAnimation;
+
 };
 
 #endif // GRIDMARKER_H

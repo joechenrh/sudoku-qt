@@ -1,5 +1,6 @@
 ﻿#include "gridwidget.h"
 
+#include <QDebug>
 #include <QFontDatabase>
 #include <QGraphicsDropShadowEffect>
 
@@ -8,6 +9,8 @@ const int duration = 200;
 GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
     : QWidget(parent), m_multiValue(0), m_value(0), m_numConflict(0)
 {   
+    this->setUpdatesEnabled(false);
+
     // 设置单元格大小和阴影
     QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect(this);
     shadow->setOffset(2, 2);
@@ -69,15 +72,19 @@ GridWidget::GridWidget(int row, int col, int size, QWidget *parent)
     m_button->setStyleSheet("background-color:transparent;");
     connect(m_button, SIGNAL(clicked()),      this, SLOT(buttonClicked()));
     connect(m_button, SIGNAL(rightClicked()), this, SLOT(buttonRightClicked()));
+
+    this->setUpdatesEnabled(true);
 }
 
 void GridWidget::setColorStyle(QJsonObject json)
 {
+    this->setUpdatesEnabled(false);
+
     m_style.border_color[0] = json.value("font_color_unabled").toString();
     m_style.border_color[1] = json.value("font_color_normal").toString();
 
-    m_style.border_radius[0] = json.value("border_radius_conflict").toInt();
-    m_style.border_radius[1] = 0;
+    m_style.border_radius[0] = json.value("border_radius_conflict").toString();
+    m_style.border_radius[1] = "0";
 
     m_style.font_color[0] = json.value("font_color_unabled").toString();
     m_style.font_color[1] = json.value("font_color_normal").toString();
@@ -89,39 +96,43 @@ void GridWidget::setColorStyle(QJsonObject json)
 
     m_style.spacing_color = json.value("spacing_color").toString();
 
-    //m_borderRadius = m_style.border_radius[m_numConflict == 0];
-    //m_borderColor  = m_style.border_color[m_button->isEnabled()];
-    //m_fontColor    = m_style.font_color[m_button->isEnabled()];
-
     for (auto grid : m_multiGrids)
     {
         grid->setStyleSheet(QString("color:%1").arg(m_style.font_color[1]));
     }
 
     (static_cast<QGraphicsDropShadowEffect*>(graphicsEffect()))->setColor(m_style.background_shadow_color);
-    // m_marker->setMarkerColor(json.value("marker_color").toString());
     m_marker->setMarkerColor(json.value("font_color_normal").toString());
     m_marker->setShadowColor(json.value("marker_color_shadow").toString());
 
     m_foreground->setStyleSheet(m_backgroundStyle.arg(m_style.background_color_unhovered).arg(m_style.spacing_color));
     m_background->setStyleSheet(m_backgroundStyle.arg(m_style.background_color_hovered).arg(m_style.spacing_color));
+
+    //QPalette p = m_foreground->palette();
+    //p.setColor(QPalette::Base, m_style.background_color_unhovered);
+    //m_foreground->setPalette(p);
+
+    //QPalette p = m_foreground->palette();
+    //p.setColor(QPalette::Base, m_style.background_color_unhovered);
+    //m_foreground->setPalette(p);
+
     setButtonStyle(false);
-    //m_button->setStyleSheet(m_buttonStyle
-    //                        .arg(m_borderRadius)
-    //                        .arg(m_borderColor)
-    //                        .arg(m_fontColor));
+    //m_borderRadius = m_style.border_radius[m_numConflict == 0];
+    //m_borderColor  = m_style.border_color[m_button->isEnabled()];
+    //m_fontColor    = m_style.font_color[m_button->isEnabled()];
+    //m_buttonStyle  = QString("border:%1px solid %2;color:%3;");
+    //m_singleGrid->setStyleSheet(m_buttonStyle.arg(m_borderRadius, m_borderColor, m_fontColor));
+
+    this->setUpdatesEnabled(true);
 }
 
 void GridWidget::setEnabled(bool enabled)
-{
+{  
     m_button->setEnabled(enabled);
+    setButtonStyle(false);
     //m_fontColor = m_style.font_color[enabled];
     //m_borderColor = m_style.border_color[enabled];
-    //m_button->setStyleSheet(m_buttonStyle
-    //                        .arg(m_borderRadius)
-    //                        .arg(m_borderColor)
-    //                        .arg(m_fontColor));
-    setButtonStyle(false);
+    //m_singleGrid->setStyleSheet(m_buttonStyle.arg(m_borderRadius, m_borderColor, m_fontColor));
 }
 
 bool GridWidget::isEnabled() const
@@ -131,6 +142,8 @@ bool GridWidget::isEnabled() const
 
 void GridWidget::setMultiValue(int value)
 {
+    this->setUpdatesEnabled(false);
+
     m_multiValue = value;
 
     if (value == 0)
@@ -149,6 +162,8 @@ void GridWidget::setMultiValue(int value)
         m_multiGrids[i]->setVisible(value % 2);
         value /= 2;
     }
+
+    this->setUpdatesEnabled(true);
 }
 
 int GridWidget::multiValue() const
@@ -158,6 +173,8 @@ int GridWidget::multiValue() const
 
 void GridWidget::setValue(int value)
 {
+    this->setUpdatesEnabled(false);
+
     if (value && m_multiValue)
     {
         m_singleGrid->show();
@@ -168,6 +185,8 @@ void GridWidget::setValue(int value)
     }
     m_value = value;
     m_singleGrid->setText(value == 0 ? "" : QString::number(value));
+
+    this->setUpdatesEnabled(true);
 }
 
 int GridWidget::value() const
@@ -181,17 +200,17 @@ void GridWidget::changeConflict(int num)
     if (m_numConflict == 0 && num > 0)
     {
         m_borderRadius = m_style.border_radius[1];
-        m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+        m_singleGrid->setStyleSheet(m_buttonStyle.arg(m_borderRadius, m_borderColor, m_fontColor));
     }
     else if (m_numConflict > 0 && m_numConflict + num == 0)
     {
         m_borderRadius = m_style.border_radius[0];
-        m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+        m_singleGrid->setStyleSheet(m_buttonStyle.arg(m_borderRadius, m_borderColor, m_fontColor));
     }
     */
-
     m_numConflict += num;
     setButtonStyle(false);
+
 }
 
 void GridWidget::clearConflict()
@@ -199,7 +218,7 @@ void GridWidget::clearConflict()
     m_numConflict = 0;
     setButtonStyle(false);
     //m_borderRadius = m_style.border_radius[1];
-    //m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+    //m_singleGrid->setStyleSheet(m_buttonStyle.arg(m_borderRadius, m_borderColor, m_fontColor));
 }
 
 
@@ -240,7 +259,7 @@ void GridWidget::enter()
     m_marker->show();
     setButtonStyle(true);
     // m_fontColor = m_style.font_color[2];
-    // m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+    // m_singleGrid->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
 }
 
 void GridWidget::leave()
@@ -249,20 +268,24 @@ void GridWidget::leave()
     m_marker->hide();
     setButtonStyle(false);
     // m_fontColor = m_style.font_color[1];
-    // m_button->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
+    // m_singleGrid->setStyleSheet(m_buttonStyle.arg(m_borderRadius).arg(m_borderColor).arg(m_fontColor));
 }
 
 void GridWidget::setButtonStyle(int entered)
 {
+    this->setUpdatesEnabled(false);
+
     // m_value为0就不用修改m_singleGrid的stylesheet
-    if (m_value == 0)
+    if (m_button->isEnabled() && m_value == 0)
     {
         m_multiGrids[4]->setStyleSheet(QString("color:%1;").arg(entered ? "#FBFBBF": m_style.font_color[1]));
     }
 
     // 只有isEnabled()为true时entered才会为1
     m_singleGrid->setStyleSheet(QString("border:%1px solid %2;color:%3;")
-                                .arg(m_style.border_radius[m_numConflict == 0])
-                                .arg(m_style.border_color[m_button->isEnabled()])
-                                .arg(m_style.font_color[m_button->isEnabled() + entered]));
+                                .arg(m_style.border_radius[m_numConflict == 0],
+                                     m_style.border_color[m_button->isEnabled()],
+                                     m_style.font_color[m_button->isEnabled() + entered]));
+
+    this->setUpdatesEnabled(true);
 }

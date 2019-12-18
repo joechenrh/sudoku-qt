@@ -1,11 +1,10 @@
 ﻿#include "basewidget.h"
 
-#include <QGraphicsEffect>
-
 const int duration = 200;
 const double fullOpacity = 0.999;
 
-BaseWidget::BaseWidget(QWidget *parent) : QLabel(parent)
+BaseWidget::BaseWidget(QWidget *parent)
+    : QLabel(parent)
 {
     this->setAlignment(Qt::AlignCenter);
 
@@ -19,7 +18,7 @@ BaseWidget::BaseWidget(QWidget *parent) : QLabel(parent)
     m_animation->setEasingCurve(QEasingCurve::InOutQuad);
 
     m_scaleAnimation = new QPropertyAnimation(this, "fontPointSize");
-    m_scaleAnimation->setDuration(100);
+    m_scaleAnimation->setDuration(duration / 2);
     m_scaleAnimation->setEasingCurve(QEasingCurve::OutCubic);
 }
 
@@ -39,9 +38,9 @@ double BaseWidget::fontSize() const
 
 void BaseWidget::setFontSize(double size)
 {
-    QFont f = font();
-    f.setPointSizeF(size);
-    QWidget::setFont(f);
+    QFont newFont = font();
+    newFont.setPointSizeF(size);
+    QWidget::setFont(newFont);
 }
 
 void BaseWidget::zoomIn()
@@ -67,6 +66,15 @@ void BaseWidget::hide()
     m_animation->setStartValue(m_opacity->opacity());
     m_animation->setEndValue(0.0);
     m_animation->start();
+
+    /*
+    auto opacity = m_opacity->opacity();
+    m_animation->stop();
+    m_animation->setStartValue(fullOpacity);
+    m_animation->setEndValue(0.0);
+    m_animation->start();
+    m_animation->setCurrentTime(duration * (1.0 - opacity));
+    */
 }
 
 void BaseWidget::reveal()
@@ -75,6 +83,15 @@ void BaseWidget::reveal()
     m_animation->setStartValue(m_opacity->opacity());
     m_animation->setEndValue(fullOpacity);
     m_animation->start();
+
+    /*
+    auto opacity = m_opacity->opacity();
+    m_animation->stop();
+    m_animation->setStartValue(0.0);
+    m_animation->setEndValue(fullOpacity);
+    m_animation->start();
+    m_animation->setCurrentTime(duration * (1.0 - opacity));
+    */
 }
 
 double BaseWidget::opacity() const

@@ -8,13 +8,14 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-#include <QStack>
-
-#include "hoverbutton.h"
+#include "basewidget.h"
 #include "selectpanel.h"
 #include "gridwidget.h"
 #include "counter.h"
+
+#include <QMainWindow>
+#include <QPushButton>
+#include <QStack>
 
 /**
  * @brief The Op struct

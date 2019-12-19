@@ -7,11 +7,12 @@
 #ifndef SELECTPANEL_H
 #define SELECTPANEL_H
 
+#include "basewidget.h"
+
 #include <QVector>
 #include <QLabel>
 #include <QList>
-
-#include "hoverbutton.h"
+#include <QJsonObject>
 
 class PanelBase : public QLabel
 {
@@ -59,6 +60,8 @@ class SelectPanel : public QWidget
 public:
     SelectPanel(int size = 75, QWidget *parent = nullptr);
 
+    void setColorStyle(QJsonObject json);
+
     /**
      * @brief 打开控件，同时触发动画效果
      * @param x 打开时所在的x坐标
@@ -74,6 +77,8 @@ public:
      */
     bool hide();
 
+    bool canHide();
+
     /**
      * @brief isVisible
      * @return
@@ -84,16 +89,14 @@ public:
      * @brief setSelected 设置初始值
      * @param list 当前格子已选择的值
      */
-    void setSelected(QList<int> list);
-
-private:
-    void initialize();
-
+    void setSelected(int value);
 
     /**
      * @brief 记录多选的数据，暂未使用
      */
-    QVector<int> m_selected;
+    int m_selected;
+
+private:
 
     QPropertyAnimation *m_showAnimation;
 
@@ -102,7 +105,7 @@ private:
     /**
      * @brief 九宫格的九个按钮
      */
-    QVector<HoverButton*> m_buttons;
+    QVector<BaseWidget*> m_buttons;
 
     /**
      * @brief 面板的背景

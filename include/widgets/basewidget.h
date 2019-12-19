@@ -4,34 +4,46 @@
  * @author Joe chen <joechenrh@gmail.com>
  */
 
-#ifndef HOVERBUTTON_H
-#define HOVERBUTTON_H
+#ifndef BASEWIDGET_H
+#define BASEWIDGET_H
 
 #include <QLabel>
-#include <QPushButton>
 #include <QMouseEvent>
 #include <QPropertyAnimation>
+#include <QGraphicsOpacityEffect>
 
 /**
  * @brief The HoverButton class 按钮控件
  * @details 相对于基础的鼠标控件，增加了右键事件和淡入淡出效果
  * 主要是为了GridWidget服务
  */
-class HoverButton : public QLabel
+class BaseWidget : public QLabel
 {
     Q_OBJECT
 
-public:
-    HoverButton(QWidget *parent = nullptr);
+    Q_PROPERTY(double fontPointSize READ fontSize WRITE setFontSize)
 
-    /**
-     * @brief 隐藏当前控件
-     */
+public:
+    BaseWidget(QWidget *parent = nullptr);
+
+
+    double fontSize() const;
+
+    void setFont(const QFont &font);
+
+    void setFontSize(double size);
+
+    void zoomIn();
+
+    void zoomOut();
+
+
+    void setOpacity(double opacity);
+
+    double opacity() const;
+
     void hide();
 
-    /**
-     * @brief 显示当前控件
-     */
     void reveal();
 
 protected:
@@ -71,16 +83,36 @@ signals:
      */
     void rightClicked();
 
+    /**
+     * @brief 鼠标左击触发的事件
+     */
     void clicked();
 
+    /**
+     * @brief 鼠标中击触发的事件
+     */
     void midClicked();
 
 private:
     /**
-     * @brief 淡出动画
+     * @brief 透明度
+     */
+    QGraphicsOpacityEffect *m_opacity;
+
+    /**
+     * @brief m_fontSize
+     */
+    double m_fontSize;
+
+    /**
+     * @brief 淡入淡出动画
      */
     QPropertyAnimation *m_animation;
 
+    /**
+     * @brief 缩放动画
+     */
+    QPropertyAnimation *m_scaleAnimation;
 };
 
-#endif // HOVERBUTTON_H
+#endif // BASEWIDGET_H

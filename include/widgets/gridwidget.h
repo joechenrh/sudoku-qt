@@ -7,11 +7,10 @@
 #ifndef GRIDWIDGET_H
 #define GRIDWIDGET_H
 
-#include <QJsonObject>
-
-#include "hoverbutton.h"
+#include "basewidget.h"
 #include "gridmarker.h"
 
+#include <QJsonObject>
 
 /**
  * @brief The GridWidget class
@@ -26,13 +25,14 @@ class GridWidget : public QWidget
 
     struct GridWidgetStyle
     {
-        int border_radius[2];
+        QString border_radius[2];
         QString border_color[2];
         QString font_color[3];
 
         QString background_color_hovered;
         QString background_color_unhovered;
         QString background_shadow_color;
+        QString spacing_color;
     };
 
 public:
@@ -60,11 +60,15 @@ public:
      */
     void setValue(int value);
 
+    void setMultiValue(int value);
+
     /**
      * @brief 返回选中的值
      * @return 该格选中的值，如没选中，返回0
      */
     int value() const;
+
+    int multiValue() const;
 
     void enter();
 
@@ -90,6 +94,8 @@ public:
      * @brief 清空冲突数
      */
     void clearConflict();
+
+    int m_multiValue;
 
 /******************************/
 /* 下面8个都是为了传递信号        */
@@ -144,10 +150,19 @@ signals:
 private:
     GridWidgetStyle m_style;
 
+    void setButtonStyle(int entered);
+
     /**
-     * @brief 最顶层的按钮，用于显示数值和触发单击事件
+     * @brief 最顶层的按钮，用于触发单击事件
      */
-    HoverButton *m_button;
+    BaseWidget *m_button;
+
+    QVector<QLabel*> m_multiGrids;
+
+    /**
+     * @brief QLabel，用于显示数值
+     */
+    QLabel *m_singleGrid;
 
     /**
      * @brief 鼠标覆盖时的标记
@@ -162,38 +177,12 @@ private:
     /**
      * @brief 底层的前景
      */
-    HoverButton *m_foreground;
-
-
-    /**
-     * @brief 顶层按钮的stylesheet
-     */
-    // QString m_buttonStyle;
+    BaseWidget *m_foreground;
 
     /**
      * @brief m_backgroundStyle
      */
     QString m_backgroundStyle;
-
-
-    /**
-     * @brief 边框的宽度，只可能为0或3
-     * @details 单元格发生冲突时显示的白圈
-     * 就是通过控件的border属性来绘制的
-     */
-    //int m_borderRadius;
-
-    /**
-     * @brief 边框的颜色
-     * @see m_borderRadius
-     */
-    //QString m_borderColor;
-
-    /**
-     * @brief 字体的颜色
-     */
-    //QString m_fontColor;
-
 
     /**
      * @brief 当前单元格的值
@@ -206,7 +195,10 @@ private:
      */
     int m_numConflict;
 
-    void setButtonStyle(int entered);
+    QString m_borderRadius;
+    QString m_borderColor;
+    QString m_fontColor;
+    QString m_buttonStyle;
 };
 
 #endif // GRIDWIDGET_H

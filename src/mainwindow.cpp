@@ -5,13 +5,34 @@
 #include <QTime>
 #include <QDebug>
 #include <QFontDatabase>
+#include <QJsonDocument>
 
 #include "sudokusolver.h"
 
-#define margin 15              // 四周的边缘宽度
-#define gridSize 81            // 格子的大小
-#define halfSize gridSize / 2  // 半个格子的大小，也是按钮的高度
-#define spacing 5              // 九宫格之间的间隔
+/**
+ * @brief 加载颜色风格
+ * @return jsonObject的字典
+ */
+QJsonObject loadStyle()
+{
+    QString path = ":/styles/";
+    QDir directory(path);
+    QStringList files = directory.entryList(QStringList() << "*.json", QDir::Files);
+
+    QTime time;
+    time= QTime::currentTime();
+    qsrand(time.msec() + time.second() * 1000);
+    int n = qrand() % files.size();
+
+    QFile file(path + files[n]);
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    QByteArray data = file.readAll();
+    file.close();
+
+    QJsonDocument document = QJsonDocument::fromJson(data);
+    QJsonObject jsonObject = document.object();
+    return jsonObject;
+}
 
 QPushButton* createButton(QWidget* parent, QSize size, QString text)
 {
@@ -27,23 +48,26 @@ QPushButton* createButton(QWidget* parent, QSize size, QString text)
     shadow_effect->setBlurRadius(2);
 
     QPushButton *button = new QPushButton(text);
+    button->setObjectName("createdButton");
     button->setParent(parent);
     button->setFont(buttonFont);
     button->setFixedSize(size);
     button->setGraphicsEffect(shadow_effect);
-
     return button;
 }
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), ui(new Ui::MainWindow)
   , m_sr(-1), m_sc(-1), m_switching(false), m_forcing(false)
 {
-    // 窗口设置
-    QColor color = QColor("#DDE2E5");
-    QPalette p = this->palette();
-    p.setColor(QPalette::Window,color);
-    this->setPalette(p);
+    /*********************************************/
+
+    auto colorStyle = loadStyle();
+    int gridSize = 81;           // 格子的大小
+    int margin   = 15;           // 四周的边缘宽度
+    int spacing  = 5;            // 九宫格之间的间隔
+    int halfSize = gridSize / 2; // 半个格子的大小，也是按钮的高度
 
     /*********************************************/
 
@@ -75,6 +99,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
             GridWidget *grid = new GridWidget(r, c, gridSize, this);
             grid->move(margin + c * gridSize + c / 3 * spacing, margin + r * gridSize + r / 3 * spacing);
+            grid->setColorStyle(colorStyle["GridWidget"].toObject());
             m_grids[r][c] = grid;
 
             // 问题1：取消后立刻移到被取消的单元格，marker会出现，原因：off比hover里的on晚触发
@@ -83,7 +108,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
             connect(grid, &GridWidget::hovered, [=]()
             {
-                if ((!m_switching && grid->isEnabled() && !m_panel->isVisible()) || m_forcing)
+                if (!grid->isEnabled())
+                {
+                    return;
+                }
+
+                if ((!m_switching && !m_panel->isVisible()) || m_forcing)
                 {
                     smartAssistOn(r, c);
                     grid->enter();
@@ -92,7 +122,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
             connect(grid, &GridWidget::leaved, [=]()
             {
-                if (grid->isEnabled() && !m_panel->isVisible())
+                if (!grid->isEnabled())
+                {
+                    return;
+                }
+
+                if ((!m_switching && !m_panel->isVisible()) || m_forcing)
                 {
                     m_sr = m_sc = -1;
                     smartAssistOff(r, c);
@@ -102,15 +137,28 @@ MainWindow::MainWindow(QWidget *parent) :
 
             connect(grid, &GridWidget::rightClicked, [=]()
             {
-                if (m_panel->isVisible() && m_panel->hide())
+                // 菜单未打开就清空
+                if (!m_panel->isVisible())
                 {
-                    if (m_sr >= 0 && m_sc >= 0)
-                    {
-                        smartAssistOff(m_sr, m_sc);
-                    }
+                    clearGrid(r, c);
                     return;
                 }
-                clearGrid(r, c);
+
+                // 如果菜单关闭失败（正在关闭/打开）直接退出
+                if (!m_panel->canHide())
+                {
+                    return;
+                }
+
+                // 从有唯一值到有多选值也看做是一步操作
+                if (m_panel->m_selected && m_grids[m_sr][m_sc]->value())
+                {
+                    receiveResult(0);
+                }
+
+                m_grids[m_sr][m_sc]->setMultiValue(m_panel->m_selected);
+                m_panel->hide();
+                smartAssistOff(m_sr, m_sc);
             });
 
             connect(grid, &GridWidget::clicked, [=](){
@@ -118,16 +166,22 @@ MainWindow::MainWindow(QWidget *parent) :
                 if (!m_panel->isVisible() || m_panel->hide())
                 {
                     m_switching = false;
-                    m_panel->show(grid->geometry().x(), grid->geometry().y());
+                    // m_sr和m_sc都小于0表示第一次打开窗体，所以没有上次打开的位置
+                    // 这里的逻辑还要再看看游戏里的逻辑是怎么样的
+
                     if (m_sr >= 0 && m_sc >= 0)
                     {
+                        m_grids[m_sr][m_sc]->m_multiValue = m_panel->m_selected;
                         smartAssistOff(m_sr, m_sc);
                     }
+                    m_panel->setSelected(grid->value() ? 0 : grid->m_multiValue);
+                    m_panel->show(grid->geometry().x(), grid->geometry().y());
                     grid->leave();
                     smartAssistOn(r, c);
                     m_sr = r;
                     m_sc = c;
                 }
+                m_switching = false;
             });
         }
     }
@@ -135,10 +189,10 @@ MainWindow::MainWindow(QWidget *parent) :
     /***************************************/
     // 按钮
     // 所有按钮的样式，圆角等属性每个按钮自己设定
-    this->setStyleSheet("MainWindow QPushButton{background-color:#FFFFFF;color:#5F5F5F;}"
-                        "MainWindow QPushButton:hover{background-color:rgb(236, 236, 236);}"
-                        "MainWindow QPushButton:pressed{background-color:rgb(222, 222, 222);}"
-                        "MainWindow QPushButton:!enabled{background-color:rgb(200, 200, 200);}");
+    this->setStyleSheet("QPushButton#createdButton{background-color:#FFFFFF;color:#5F5F5F;}"
+                        "QPushButton#createdButton:hover{background-color:rgb(236, 236, 236);}"
+                        "QPushButton#createdButton:pressed{background-color:rgb(222, 222, 222);}"
+                        "QPushButton#createdButton:!enabled{background-color:rgb(200, 200, 200);}");
 
     // 加载按钮
     QPushButton *loadButton = createButton(this, QSize(gridSize * 3, gridSize), "Load");
@@ -161,42 +215,60 @@ MainWindow::MainWindow(QWidget *parent) :
     // 回退按钮
     m_undoButton = createButton(this, QSize(halfSize, gridSize), "<");
     m_undoButton->move(margin + gridSize * 9 + halfSize, margin + gridSize * 9 + halfSize);
-    m_undoButton->setStyleSheet(QString("border-top-left-radius:%1px;border-bottom-left-radius:%1px;").arg(halfSize));
+    m_undoButton->setStyleSheet(QString("border-top-left-radius:%1px;border-bottom-left-radius:%1px;").arg(halfSize / 2));
     connect(m_undoButton, SIGNAL(clicked()), this, SLOT(undo()));
 
     // 重做按钮
     m_redoButton = createButton(this, QSize(halfSize, gridSize), ">");
     m_redoButton->move(margin + gridSize * 10, margin + gridSize * 9 + halfSize);
-    m_redoButton->setStyleSheet(QString("border-top-right-radius:%1px;border-bottom-right-radius:%1px;").arg(halfSize));
+    m_redoButton->setStyleSheet(QString("border-top-right-radius:%1px;border-bottom-right-radius:%1px;").arg(halfSize / 2));
     connect(m_redoButton, SIGNAL(clicked()), this, SLOT(redo()));
 
     /***************************************/
 
     m_panel = new SelectPanel(gridSize, this);
+    m_panel->setColorStyle(colorStyle["SelectPanel"].toObject());
     connect(m_panel, &SelectPanel::finish, [&](int selected)
     {
+        m_grids[m_sr][m_sc]->setMultiValue(0);
+        m_panel->m_selected = 0;
+
         smartAssistOff(m_sr, m_sc);
         receiveResult(selected);
-
         m_forcing = true;
         m_panel->hide();
         m_forcing = false;
     });
 
     int space = std::min(spacing / 10, 2);
+    auto counterStyle = colorStyle["Counter"].toObject();
     for (int num = 1; num <= 9; ++num)
     {
        Counter *counter = new Counter(num, gridSize, this);
        counter->move(margin + gridSize * 9 + halfSize, margin - gridSize + num * (space + gridSize));
+       counter->setColorStyle(counterStyle);
        connect(counter, &Counter::hovered, [=]() {highlight(num, true);});
-       connect(counter, &Counter::leave,   [=]() {highlight(num, false);});
+       connect(counter, &Counter::leaved,  [=]() {highlight(num, false);});
        m_counters[num] = counter;
     }
 
     loadRandomPuzzle();
 
+    /*********************************************/
+
+    // 窗口设置
+
     int minSize = gridSize * 10 + halfSize + 2 * margin;
     this->setMinimumSize(minSize, minSize);
+
+    QLinearGradient linearGrad(QPointF(0, minSize), QPointF(minSize, 0));
+    linearGrad.setColorAt(0, colorStyle["top_right_color"].toString());
+    linearGrad.setColorAt(1, colorStyle["bottom_left_color"].toString());
+    QBrush brush(linearGrad);
+
+    QPalette p = this->palette();
+    p.setBrush(QPalette::Window, brush);
+    this->setPalette(p);
 }
 
 MainWindow::~MainWindow()
@@ -246,7 +318,7 @@ void MainWindow::changeNumber(int r, int c, int previous, int selected)
 {
     m_grids[r][c]->setValue(selected);
 
-    int num = 0;
+    int conflicts = 0;
 
     // 冲突检测，将和旧值相同的格子冲突数都减去1
     if (previous > 0)
@@ -258,7 +330,7 @@ void MainWindow::changeNumber(int r, int c, int previous, int selected)
             if (m_grids[pair.first][pair.second]->value() == previous)
             {
                 m_grids[pair.first][pair.second]->changeConflict(-1);
-                --num;
+                --conflicts;
             }
         }
     }
@@ -273,12 +345,12 @@ void MainWindow::changeNumber(int r, int c, int previous, int selected)
             if (m_grids[pair.first][pair.second]->value() == selected)
             {
                 m_grids[pair.first][pair.second]->changeConflict(1);
-                ++num;
+                ++conflicts;
             }
         }
     }
 
-    m_grids[r][c]->changeConflict(num);
+    m_grids[r][c]->changeConflict(conflicts);
 }
 
 void MainWindow::clearGrid(int r, int c)
@@ -312,6 +384,7 @@ void MainWindow::clearAll()
         for (int c = 0; c < 9; c++)
         {
             int value = m_grids[r][c]->value();
+            m_grids[r][c]->setMultiValue(0);
             if (m_grids[r][c]->isEnabled() && value)
             {
                 ++counts[value];
@@ -362,24 +435,20 @@ void MainWindow::loadRandomPuzzle()
         return;
     }
 
-    // 统计文件数量
-    QDir *dir = new QDir(":/puzzles");
-    QStringList filter;
-    QList<QFileInfo> *fileInfo = new QList<QFileInfo>(dir->entryInfoList(filter));
-    int count = fileInfo->count();  //文件个数
+    QString path = ":/puzzles/";
+    QDir directory(path);
+    QStringList files = directory.entryList(QStringList() << "*.txt", QDir::Files);
 
-    // 随机选取文件
     QTime time;
     time= QTime::currentTime();
     qsrand(time.msec() + time.second() * 1000);
-    int n = qrand() % count;
-    QString fileName = QString(":/puzzles/%1.txt").arg(n + 1);
+    int n = qrand() % files.size();
 
-    QFile file(fileName);
-    if(!file.open(QFile::ReadOnly))
-    {
-        return;
-    }
+    QFile file(path + files[n]);
+    file.open(QFile::ReadOnly);
+    QString array = file.readAll();
+    QStringList rows = array.split('\n');
+    file.close();
 
     QVector<int> counts(10, 0);
     for (auto &set : m_numPositions)
@@ -388,8 +457,6 @@ void MainWindow::loadRandomPuzzle()
     }
 
     int val;
-    QString array = file.readAll();
-    QStringList rows = array.split('\n');
     for (int r = 0; r < 9; r++)
     {
         QStringList cols = rows.at(r).split(' ');
@@ -413,7 +480,6 @@ void MainWindow::loadRandomPuzzle()
     m_redoButton->setEnabled(false);
 }
 
-// 没有结果时的处理
 void MainWindow::solve()
 {
     if (m_panel->isVisible())
@@ -432,8 +498,12 @@ void MainWindow::solve()
 
     SudokuSolver solver(puzzle);
     solver.Solve();
+    if (solver.m_num == 0)
+    {
+        return;
+    }
 
-    for (int num = 0; num <= 9; ++num)
+    for (int num = 1; num <= 9; ++num)
     {
         m_numPositions[num].clear();
         m_counters[num]->setCount(0);
@@ -444,6 +514,7 @@ void MainWindow::solve()
         for (int c = 0; c < 9; c++)
         {
             int value = solver.m_res[r][c];
+            m_grids[r][c]->setMultiValue(0);
             m_grids[r][c]->setValue(value);
             m_numPositions[value].insert(qMakePair(r, c));
         }

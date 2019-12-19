@@ -4,6 +4,8 @@
     </qresource>
     <qresource prefix="/styles">
         <file>simple.json</file>
+        <file>dark.json</file>
+        <file>light.json</file>
     </qresource>
     <qresource prefix="/puzzles">
         <file>1.txt</file>

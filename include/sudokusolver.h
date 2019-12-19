@@ -6,6 +6,8 @@
 
 
 #include <QVector>
+#include <QDebug>
+
 #include <iostream>
 
 enum resType {SOLVED, UNSOLVED, FAILED};
@@ -110,15 +112,23 @@ public:
 
     void Solve()
     {
+        m_num = 0;
         Solve(m_puzzle);
     }
 
     QVector<QVector<int>> m_res;
 
+    int m_num;
+
 private:
 
     void Solve(puzzleType &puzzle)
     {
+        if (m_num > 0)
+        {
+            return;
+        }
+
         reduce(puzzle);
         resType res = checkResult(puzzle);
 
@@ -131,6 +141,7 @@ private:
                     m_res[i][j] = getV9(puzzle[i][j].value);
                 }
             }
+            ++m_num;
             printf("Solved");
         }
         else if (res == UNSOLVED)

@@ -108,7 +108,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
             connect(grid, &GridWidget::hovered, [=]()
             {
-                if ((!m_switching && grid->isEnabled() && !m_panel->isVisible()) || m_forcing)
+                if (!grid->isEnabled())
+                {
+                    return;
+                }
+
+                if ((!m_switching && !m_panel->isVisible()) || m_forcing)
                 {
                     smartAssistOn(r, c);
                     grid->enter();
@@ -117,7 +122,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
             connect(grid, &GridWidget::leaved, [=]()
             {
-                if (grid->isEnabled() && !m_panel->isVisible())
+                if (!grid->isEnabled())
+                {
+                    return;
+                }
+
+                if ((!m_switching && !m_panel->isVisible()) || m_forcing)
                 {
                     m_sr = m_sc = -1;
                     smartAssistOff(r, c);

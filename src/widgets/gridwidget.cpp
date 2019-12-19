@@ -109,7 +109,7 @@ void GridWidget::setColorStyle(QJsonObject json)
     m_background->setStyleSheet(m_backgroundStyle.arg(m_style.background_color_hovered).arg(m_style.spacing_color));
 
     //QPalette p = m_foreground->palette();
-    //p.setColor(QPalette::Base, m_style.background_color_unhovered);
+    //p.setColor(QPalette::Window, m_style.background_color_hovered);
     //m_foreground->setPalette(p);
 
     //QPalette p = m_foreground->palette();
@@ -142,25 +142,26 @@ bool GridWidget::isEnabled() const
 
 void GridWidget::setMultiValue(int value)
 {
-    this->setUpdatesEnabled(false);
-
     m_multiValue = value;
 
-    if (value == 0)
+    this->setUpdatesEnabled(false);
+
+    if (value)
+    {
+        m_singleGrid->hide();
+        for (auto &grid : m_multiGrids)
+        {
+            grid->setVisible(value % 2);
+            value /= 2;
+        }
+    }
+    else
     {
         m_singleGrid->show();
-        for (int i = 0; i < 9; i++)
+        for (auto &grid : m_multiGrids)
         {
-            m_multiGrids[i]->hide();
+            grid->hide();
         }
-        return;
-    }
-
-    m_singleGrid->hide();
-    for (int i = 0; i < 9; i++)
-    {
-        m_multiGrids[i]->setVisible(value % 2);
-        value /= 2;
     }
 
     this->setUpdatesEnabled(true);

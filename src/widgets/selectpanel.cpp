@@ -1,5 +1,4 @@
-﻿
-#include "selectpanel.h"
+﻿#include "selectpanel.h"
 
 #include <QDebug>
 #include <QFontDatabase>
@@ -13,7 +12,6 @@ const int duration = 200;
 SelectPanel::SelectPanel(int size, QWidget *parent)
     : QWidget(parent), m_selected(0)
 {
-
     this->setFixedSize(size, size);
     QWidget::hide();
 
@@ -57,13 +55,13 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
                 // Todo: 调整为用一个int型储存
                 int tmp = 1 << (num - 1);
                 m_selected ^= tmp;
-                button->setOpacity(m_selected & tmp ? 1.0 : 0.75);
+                button->setOpacity(m_selected & tmp ? 1.0 : 0.5);
             });
         }
     }
 
     m_showAnimation = new QPropertyAnimation(m_background, "geometry");
-    m_showAnimation->setEasingCurve(QEasingCurve::OutCubic);
+    m_showAnimation->setEasingCurve(QEasingCurve::OutQuad);
     m_showAnimation->setDuration(duration);
     m_showAnimation->setStartValue(QRect(size / 2, size / 2, 1, 1));
     m_showAnimation->setEndValue(QRect(-size / 4, -size / 4, size + size / 4 * 2, size + size / 4 * 2));
@@ -72,7 +70,7 @@ SelectPanel::SelectPanel(int size, QWidget *parent)
     m_hideAnimation->setEasingCurve(QEasingCurve::OutQuad);
     m_hideAnimation->setDuration(150);
     m_hideAnimation->setStartValue(QRect(0, 0, size, size));
-    int w = (size / 5) & -2;
+    int w = (size / 5) & -2 + 1;
     m_hideAnimation->setEndValue(QRect((size - w) / 2, (size - w) / 2, w, w));
 
     setStyleSheet(QString("BaseWidget#panelButton{color:#FBFBFB;};"));

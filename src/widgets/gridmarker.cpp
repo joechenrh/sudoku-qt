@@ -3,9 +3,9 @@
 #include <QDebug>
 
 GridMarker::GridMarker(int size, QWidget *parent)
-    : QLabel(parent), m_indent(2)
+    : QLabel(parent), m_indent(3)
 {
-    int start = static_cast<int>(size * 0.2) - m_indent * 2;
+    int start = static_cast<int>(size * 0.2) - m_indent;
     QRect maxSize = QRect(start, start, size - 2 * start, size - 2 * start);
     QRect minSize = QRect(size / 2, size / 2, 1, 1);
     m_maxSize = size - 2 * start;
@@ -36,7 +36,7 @@ void GridMarker::setShadowColor(const QColor &color)
     shadow->setOffset(0, 3);
     shadow->setBlurRadius(3);
     shadow->setColor(color);
-    this->setGraphicsEffect(shadow);
+    // this->setGraphicsEffect(shadow);
 }
 
 void GridMarker::setDuration(const int &duration)

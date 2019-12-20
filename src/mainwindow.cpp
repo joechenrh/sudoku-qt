@@ -162,6 +162,7 @@ MainWindow::MainWindow(QWidget *parent) :
             });
 
             connect(grid, &GridWidget::clicked, [=](){
+                /*
                 m_switching = true;
                 if (!m_panel->isVisible() || m_panel->hide())
                 {
@@ -174,14 +175,31 @@ MainWindow::MainWindow(QWidget *parent) :
                         m_grids[m_sr][m_sc]->m_multiValue = m_panel->m_selected;
                         smartAssistOff(m_sr, m_sc);
                     }
-                    m_panel->setSelected(grid->value() ? 0 : grid->m_multiValue);
-                    m_panel->show(grid->geometry().x(), grid->geometry().y());
-                    grid->leave();
-                    smartAssistOn(r, c);
-                    m_sr = r;
-                    m_sc = c;
+
                 }
                 m_switching = false;
+                */
+
+                if (m_panel->isVisible() && m_panel->canHide())
+                {
+                    m_switching = true;
+                    m_panel->hide();
+                    m_switching = false;
+                }
+
+                if (m_sr >= 0 && m_sc >= 0)
+                {
+                    m_grids[m_sr][m_sc]->setMultiValue(m_panel->m_selected);
+                    smartAssistOff(m_sr, m_sc);
+                }
+
+                m_panel->setSelected(grid->value() ? 0 : grid->m_multiValue);
+                m_panel->show(grid->geometry().x(), grid->geometry().y());
+                grid->leave();
+                smartAssistOn(r, c);
+                m_sr = r;
+                m_sc = c;
+
             });
         }
     }
@@ -213,16 +231,20 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(clearButton, SIGNAL(clicked()), this, SLOT(clearAll()));
 
     // 回退按钮
-    m_undoButton = createButton(this, QSize(halfSize, gridSize), "<");
-    m_undoButton->move(margin + gridSize * 9 + halfSize, margin + gridSize * 9 + halfSize);
+    m_undoButton = createButton(nullptr, QSize(halfSize, gridSize), "<");
+    //m_undoButton->move(margin + gridSize * 9 + halfSize, margin + gridSize * 9 + halfSize);
     m_undoButton->setStyleSheet(QString("border-top-left-radius:%1px;border-bottom-left-radius:%1px;").arg(halfSize / 2));
     connect(m_undoButton, SIGNAL(clicked()), this, SLOT(undo()));
 
     // 重做按钮
-    m_redoButton = createButton(this, QSize(halfSize, gridSize), ">");
-    m_redoButton->move(margin + gridSize * 10, margin + gridSize * 9 + halfSize);
+    m_redoButton = createButton(nullptr, QSize(halfSize, gridSize), ">");
+    //m_redoButton->move(margin + gridSize * 10, margin + gridSize * 9 + halfSize);
     m_redoButton->setStyleSheet(QString("border-top-right-radius:%1px;border-bottom-right-radius:%1px;").arg(halfSize / 2));
     connect(m_redoButton, SIGNAL(clicked()), this, SLOT(redo()));
+
+    ButtonGroup *buttonGroup = new ButtonGroup(gridSize);
+    buttonGroup->setParent(this);
+    buttonGroup->move(margin + gridSize * 9 + halfSize, margin + gridSize * 9 + halfSize);
 
     /***************************************/
 

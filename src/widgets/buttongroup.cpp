@@ -49,10 +49,10 @@ ButtonGroup::ButtonGroup(int size, QWidget *parent)
 
 void ButtonGroup::setColorStyle(QJsonObject json)
 {
-    QString backgroundColor = "#BBBBBB";
-    QString hoverColor = "#CCCCCC";
-    QString pressedColor = "#DDDDDD";
-    QString unabledColor = "#121212";
+    QString backgroundColor = "#FFFFFF";
+    QString hoverColor = "rgb(236, 236, 236)";
+    QString pressedColor = "rgb(222, 222, 222)";
+    QString unabledColor = "rgb(200, 200, 200)";
 
     //QString backgroundColor = json["background_color"].toString();
     //QString hoverColor = json["hover_color"].toString();

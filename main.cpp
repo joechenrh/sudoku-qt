@@ -7,14 +7,14 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-    //MainWindow w;
-    //Qt::WindowFlags flags = nullptr;
-    //flags |= Qt::WindowMinimizeButtonHint;
-    //w.setWindowFlags(flags); // 设置禁止最大化
-    //w.show();
+    MainWindow w;
+    Qt::WindowFlags flags = nullptr;
+    flags |= Qt::WindowMinimizeButtonHint;
+    w.setWindowFlags(flags); // 设置禁止最大化
+    w.show();
 
-    ButtonGroup *g = new ButtonGroup(75);
-    g->show();
+    //ButtonGroup *g = new ButtonGroup(75);
+    //g->show();
 
     return app.exec();
 }

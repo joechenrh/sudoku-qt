@@ -12,23 +12,11 @@
 #include "selectpanel.h"
 #include "gridwidget.h"
 #include "counter.h"
+#include "buttongroup.h"
 
 #include <QMainWindow>
 #include <QPushButton>
 #include <QStack>
-
-/**
- * @brief The Op struct
- */
-struct Op
-{
-    int row;    // 操作的行数
-    int col;    // 操作的列数
-    int before; // 更改前的值
-    int after;  // 更改后的值
-    Op(int _row = 0, int _col = 0, int _before = 0, int _after = 0)
-        : row(_row), col(_col), before(_before), after(_after) {}
-};
 
 
 namespace Ui {

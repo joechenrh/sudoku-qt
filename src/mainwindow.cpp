@@ -242,9 +242,10 @@ MainWindow::MainWindow(QWidget *parent) :
     m_redoButton->setStyleSheet(QString("border-top-right-radius:%1px;border-bottom-right-radius:%1px;").arg(halfSize / 2));
     connect(m_redoButton, SIGNAL(clicked()), this, SLOT(redo()));
 
-    ButtonGroup *buttonGroup = new ButtonGroup(gridSize);
-    buttonGroup->setParent(this);
-    buttonGroup->move(margin + gridSize * 9 + halfSize, margin + gridSize * 9 + halfSize);
+    m_buttonGroup = new ButtonGroup(gridSize);
+    m_buttonGroup->setParent(this);
+    m_buttonGroup->move(margin + gridSize * 9 + halfSize, margin + gridSize * 9 + halfSize);
+    connect(m_buttonGroup, SIGNAL(sendOps(QList<Op>)), this, SLOT(changeNumbers(QList<Op>)));
 
     /***************************************/
 
@@ -299,6 +300,15 @@ MainWindow::~MainWindow()
     delete m_panel;
 }
 
+void MainWindow::changeNumbers(QList<Op> ops)
+{
+    this->setUpdatesEnabled(false);
+    for (auto op : ops)
+    {
+        changeNumber(op.row, op.col, op.before, op.after);
+    }
+    this->setUpdatesEnabled(true);
+}
 
 void MainWindow::receiveResult(int selected)
 {
@@ -310,12 +320,13 @@ void MainWindow::receiveResult(int selected)
     }
 
     changeNumber(m_sr, m_sc, previous, selected);
+    m_buttonGroup->addOpeartion(Op(m_sr, m_sc, previous, selected));
 
-    m_undoOps.append(Op(m_sr, m_sc, previous, selected));
-    m_undoButton->setEnabled(true);
+    //m_undoOps.append(Op(m_sr, m_sc, previous, selected));
+    //m_undoButton->setEnabled(true);
 
-    m_redoOps.clear();
-    m_redoButton->setEnabled(false);
+    //m_redoOps.clear();
+    //m_redoButton->setEnabled(false);
 }
 
 void MainWindow::highlight(int num, int active)
@@ -385,12 +396,13 @@ void MainWindow::clearGrid(int r, int c)
     }
 
     changeNumber(r, c, previous, 0);
+    m_buttonGroup->addOpeartion(Op(r, c, previous, 0));
 
-    m_undoOps.append(Op(r, c, previous, 0));
-    m_undoButton->setEnabled(true);
+   // m_undoOps.append(Op(r, c, previous, 0));
+    //m_undoButton->setEnabled(true);
 
-    m_redoOps.clear();
-    m_redoButton->setEnabled(false);
+    //m_redoOps.clear();
+    //m_redoButton->setEnabled(false);
 }
 
 void MainWindow::clearAll()
@@ -422,11 +434,13 @@ void MainWindow::clearAll()
         m_counters[num]->modify(counts[num]);
     }
 
-    m_undoOps.clear();
-    m_undoButton->setEnabled(false);
+    m_buttonGroup->clear();
 
-    m_redoOps.clear();
-    m_redoButton->setEnabled(false);
+    //m_undoOps.clear();
+    //m_undoButton->setEnabled(false);
+
+    //m_redoOps.clear();
+    //m_redoButton->setEnabled(false);
 }
 
 
@@ -497,9 +511,10 @@ void MainWindow::loadRandomPuzzle()
         m_counters[num]->setCount(9 - counts[num]);
     }
 
-    m_undoOps.clear();
-    m_undoButton->setEnabled(false);
-    m_redoButton->setEnabled(false);
+    m_buttonGroup->clear();
+    //m_undoOps.clear();
+    //m_undoButton->setEnabled(false);
+    //m_redoButton->setEnabled(false);
 }
 
 void MainWindow::solve()

@@ -99,7 +99,19 @@ void ButtonGroup::addOpeartion(Op op)
         m_keyPosition = -1;
         m_setKeyButton->setEnabled(true);
         m_undoKeyButton->setEnabled(false);
-        m_redoButton->setEnabled(false);
+        m_redoKeyButton->setEnabled(false);
+    }
+    else if (m_keyPosition == -1)
+    {
+        m_setKeyButton->setEnabled(true);
+        m_undoKeyButton->setEnabled(false);
+        m_redoKeyButton->setEnabled(false);
+    }
+    else
+    {
+        m_setKeyButton->setEnabled(false);
+        m_undoKeyButton->setEnabled(true);
+        m_redoKeyButton->setEnabled(false);
     }
 
     m_undoStack.push(op);
@@ -111,7 +123,7 @@ void ButtonGroup::addOpeartion(Op op)
 QList<Op> ButtonGroup::undoButtonClicked()
 {
     Op op = m_undoStack.pop();
-    m_undoStack.push(op);
+    m_redoStack.push(op);
 
     m_redoButton->setEnabled(true);
     m_undoButton->setEnabled(m_undoStack.size() > 0);
@@ -122,8 +134,8 @@ QList<Op> ButtonGroup::undoButtonClicked()
     // 只有当key存在，且不在undo栈的最后一个时，才能向后回退到关键帧
     m_undoKeyButton->setEnabled(m_keyPosition > -1 && m_keyPosition < m_undoStack.size() - 1);
 
-    // 只有当key存在，且不在redo栈的第一个时，才能向前回退到关键帧
-    m_redoButton->setEnabled(m_keyPosition > -1 && m_keyPosition > m_undoStack.size());
+    // 只有当key存在，且在redo栈时，才能向前回退到关键帧
+    m_redoKeyButton->setEnabled(m_keyPosition > -1 && m_keyPosition >= m_undoStack.size());
 
     QList<Op> ops;
     ops.push_back(Op(op.row, op.col, op.after, op.before));
@@ -133,7 +145,7 @@ QList<Op> ButtonGroup::undoButtonClicked()
 QList<Op> ButtonGroup::redoButtonClicked()
 {
     Op op = m_redoStack.pop();
-    m_redoStack.push(op);
+    m_undoStack.push(op);
 
     m_undoButton->setEnabled(true);
     m_redoButton->setEnabled(m_redoStack.size() > 0);
@@ -144,8 +156,8 @@ QList<Op> ButtonGroup::redoButtonClicked()
     // 只有当key存在，且不在undo栈的最后一个时，才能向后回退到关键帧
     m_undoKeyButton->setEnabled(m_keyPosition > -1 && m_keyPosition < m_undoStack.size() - 1);
 
-    // 只有当key存在，且不在redo栈的第一个时，才能向前回退到关键帧
-    m_redoButton->setEnabled(m_keyPosition > -1 && m_keyPosition > m_undoStack.size());
+    // 只有当key存在，且在redo栈时，才能向前回退到关键帧
+    m_redoKeyButton->setEnabled(m_keyPosition > -1 && m_keyPosition >= m_undoStack.size());
 
     QList<Op> ops;
     ops.push_back(op);
@@ -162,7 +174,10 @@ QList<Op> ButtonGroup::undoKeyButtonClicked()
         m_redoStack.push(op);
     }
     m_undoKeyButton->setEnabled(false);
+    m_redoKeyButton->setEnabled(false);
     m_setKeyButton->setEnabled(true);
+
+    m_undoButton->setEnabled(true);
     m_redoButton->setEnabled(true);
     return ops;
 }
@@ -177,7 +192,9 @@ QList<Op> ButtonGroup::redoKeyButtonClicked()
         m_undoStack.push(op);
     }
     m_undoKeyButton->setEnabled(false);
+    m_redoKeyButton->setEnabled(false);
     m_setKeyButton->setEnabled(true);
+
     m_undoButton->setEnabled(true);
     m_redoButton->setEnabled(m_redoStack.size() > 0);
     return ops;
@@ -186,15 +203,27 @@ QList<Op> ButtonGroup::redoKeyButtonClicked()
 void ButtonGroup::setKeyButtonClicked()
 {
     Op op = m_undoStack.pop();
-    if (m_keyPosition && op.isKeyOp)
+    if (m_keyPosition != -1 && op.isKeyOp)
     {
         op.isKeyOp = false;
         m_keyPosition = -1;
     }
-    else if(!m_keyPosition && !op.isKeyOp)
+    else if(m_keyPosition == -1 && !op.isKeyOp)
     {
         op.isKeyOp = true;
         m_keyPosition = m_undoStack.size();
     }
     m_undoStack.push(op);
+}
+
+void ButtonGroup::clear()
+{
+    m_undoStack.clear();
+    m_redoStack.clear();
+    m_undoButton->setEnabled(false);
+    m_redoButton->setEnabled(false);
+    m_undoKeyButton->setEnabled(false);
+    m_redoKeyButton->setEnabled(false);
+    m_setKeyButton->setEnabled(false);
+    m_keyPosition = -1;
 }

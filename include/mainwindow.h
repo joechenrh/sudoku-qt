@@ -74,6 +74,8 @@ private slots:
      */
     void clearAll();
 
+    void changeNumbers(QList<Op> ops);
+
 private:
     Ui::MainWindow *ui;
 
@@ -109,6 +111,8 @@ private:
     void changeNumber(int r, int c, int previous, int selected);
 
     /*****************************/
+
+    ButtonGroup *m_buttonGroup;
 
     /**
      * @brief 储存单元格控件的二维数组

@@ -30,6 +30,8 @@ public:
 
     void addOpeartion(Op op);
 
+    void clear();
+
 signals:
     void sendOps(QList<Op>);
 

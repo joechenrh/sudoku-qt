@@ -155,31 +155,13 @@ MainWindow::MainWindow(QWidget *parent) :
                 {
                     receiveResult(0);
                 }
-
                 m_grids[m_sr][m_sc]->setMultiValue(m_panel->m_selected);
+
                 m_panel->hide();
                 smartAssistOff(m_sr, m_sc);
             });
 
             connect(grid, &GridWidget::clicked, [=](){
-                /*
-                m_switching = true;
-                if (!m_panel->isVisible() || m_panel->hide())
-                {
-                    m_switching = false;
-                    // m_sr和m_sc都小于0表示第一次打开窗体，所以没有上次打开的位置
-                    // 这里的逻辑还要再看看游戏里的逻辑是怎么样的
-
-                    if (m_sr >= 0 && m_sc >= 0)
-                    {
-                        m_grids[m_sr][m_sc]->m_multiValue = m_panel->m_selected;
-                        smartAssistOff(m_sr, m_sc);
-                    }
-
-                }
-                m_switching = false;
-                */
-
                 if (m_panel->isVisible() && m_panel->canHide())
                 {
                     m_switching = true;

@@ -60,7 +60,7 @@ public:
      */
     void setValue(int value);
 
-    void setMultiValue(int value);
+    void setMultiValue(int multiValue);
 
     /**
      * @brief 返回选中的值

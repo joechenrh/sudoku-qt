@@ -140,28 +140,20 @@ bool GridWidget::isEnabled() const
     return m_button->isEnabled();
 }
 
-void GridWidget::setMultiValue(int value)
+void GridWidget::setMultiValue(int multiValue)
 {
-    m_multiValue = value;
-
     this->setUpdatesEnabled(false);
-
-    if (value)
+    if (m_value > 0)
     {
         m_singleGrid->hide();
-        for (auto &grid : m_multiGrids)
-        {
-            grid->setVisible(value % 2);
-            value /= 2;
-        }
+        m_value = 0;
     }
-    else
+
+    m_multiValue = multiValue;
+    for (auto &grid : m_multiGrids)
     {
-        m_singleGrid->show();
-        for (auto &grid : m_multiGrids)
-        {
-            grid->hide();
-        }
+        grid->setVisible(multiValue % 2);
+        multiValue /= 2;
     }
 
     this->setUpdatesEnabled(true);
@@ -176,8 +168,9 @@ void GridWidget::setValue(int value)
 {
     this->setUpdatesEnabled(false);
 
-    if (value && m_multiValue)
+    if (m_multiValue)
     {
+        m_multiValue = 0;
         m_singleGrid->show();
         for (auto &grid : m_multiGrids)
         {

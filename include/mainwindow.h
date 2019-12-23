@@ -44,12 +44,6 @@ public:
 
 private slots:
     /**
-     * @brief 接收结果
-     * @param selected 改变值
-     */
-    void receiveResult(int selected);
-
-    /**
      * @brief 求解当前数独
      */
     void solve();
@@ -60,24 +54,26 @@ private slots:
     void loadRandomPuzzle();
 
     /**
-     * @brief 撤回上一步操作
-     */
-    void undo();
-
-    /**
-     * @brief 重做上一步操作
-     */
-    void redo();
-
-    /**
      * @brief 清除九宫格，不包括谜面
      */
     void clearAll();
 
+    /**
+     * @brief 进行多次修改
+     * @param ops 需要进行的操作列表
+     */
     void changeNumbers(QList<Op> ops);
 
 private:
     Ui::MainWindow *ui;
+
+    /**
+     * @brief 接收结果，并加入op列表
+     * @param r 修改的行
+     * @param c 修改的列
+     * @param value 接收的值，负数表示多选，整数表示单选，0表示清空
+     */
+    void receiveResult(int r, int c, int value);
 
     /**
      * @brief 智能提示当前格子的影响范围
@@ -93,13 +89,6 @@ private:
      * @see smartAssistOn
      */
     void smartAssistOff(int r, int c);
-
-    /**
-     * @brief 清除某个单元格的值
-     * @param r 所选行
-     * @param c 所选列
-     */
-    void clearGrid(int r, int c);
 
     /**
      * @brief 调整某个单元格的值

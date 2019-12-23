@@ -150,12 +150,10 @@ MainWindow::MainWindow(QWidget *parent) :
                     return;
                 }
 
-                // 从有唯一值到有多选值也看做是一步操作
-                if (m_panel->m_selected && m_grids[m_sr][m_sc]->value())
+                if (m_panel->m_selected)
                 {
-                    receiveResult(0);
+                    receiveResult(m_sr, m_sc, -m_panel->m_selected);
                 }
-                m_grids[m_sr][m_sc]->setMultiValue(m_panel->m_selected);
 
                 m_panel->hide();
                 smartAssistOff(m_sr, m_sc);
@@ -171,7 +169,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
                 if (m_sr >= 0 && m_sc >= 0)
                 {
-                    m_grids[m_sr][m_sc]->setMultiValue(m_panel->m_selected);
+                    if (m_panel->m_selected)
+                    {
+                        receiveResult(m_sr, m_sc, -m_panel->m_selected);
+                    }
                     smartAssistOff(m_sr, m_sc);
                 }
 
@@ -235,11 +236,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_panel->setColorStyle(colorStyle["SelectPanel"].toObject());
     connect(m_panel, &SelectPanel::finish, [&](int selected)
     {
-        m_grids[m_sr][m_sc]->setMultiValue(0);
-        m_panel->m_selected = 0;
-
+        receiveResult(m_sr, m_sc, selected);
         smartAssistOff(m_sr, m_sc);
-        receiveResult(selected);
         m_forcing = true;
         m_panel->hide();
         m_forcing = false;
@@ -292,23 +290,25 @@ void MainWindow::changeNumbers(QList<Op> ops)
     this->setUpdatesEnabled(true);
 }
 
-void MainWindow::receiveResult(int selected)
+void MainWindow::receiveResult(int r, int c, int value)
 {
-    int previous = m_grids[m_sr][m_sc]->value();
-    // 选择和之前相同表示清空当前格子
-    if (previous == selected)
+    if (value > 0 && m_grids[r][c]->value() == value)
     {
-        selected = 0;
+        value = 0;
     }
 
-    changeNumber(m_sr, m_sc, previous, selected);
-    m_buttonGroup->addOpeartion(Op(m_sr, m_sc, previous, selected));
+    int previous;
+    if (m_grids[r][c]->multiValue() > 0)
+    {
+        previous = -m_grids[r][c]->multiValue();
+    }
+    else
+    {
+        previous = m_grids[r][c]->value();
+    }
 
-    //m_undoOps.append(Op(m_sr, m_sc, previous, selected));
-    //m_undoButton->setEnabled(true);
-
-    //m_redoOps.clear();
-    //m_redoButton->setEnabled(false);
+    m_buttonGroup->addOpeartion(Op(r, c, previous, value));
+    changeNumber(r, c, previous, value);
 }
 
 void MainWindow::highlight(int num, int active)
@@ -329,10 +329,9 @@ void MainWindow::highlight(int num, int active)
     }
 }
 
+// Todo:添加对多选的支持（负数即为多选）
 void MainWindow::changeNumber(int r, int c, int previous, int selected)
 {
-    m_grids[r][c]->setValue(selected);
-
     int conflicts = 0;
 
     // 冲突检测，将和旧值相同的格子冲突数都减去1
@@ -366,25 +365,26 @@ void MainWindow::changeNumber(int r, int c, int previous, int selected)
     }
 
     m_grids[r][c]->changeConflict(conflicts);
+
+    if (selected < 0)
+    {
+        m_grids[r][c]->setMultiValue(-selected);
+    }
+    else
+    {
+        m_grids[r][c]->setValue(selected);
+    }
+
 }
 
 void MainWindow::clearGrid(int r, int c)
 {
-    int previous = m_grids[r][c]->value();
     // 之前也为空就什么也不做
-    if (previous == 0)
+    if (m_grids[r][c]->value() == 0 && m_grids[r][c]->multiValue() == 0)
     {
         return;
     }
-
-    changeNumber(r, c, previous, 0);
-    m_buttonGroup->addOpeartion(Op(r, c, previous, 0));
-
-   // m_undoOps.append(Op(r, c, previous, 0));
-    //m_undoButton->setEnabled(true);
-
-    //m_redoOps.clear();
-    //m_redoButton->setEnabled(false);
+    receiveResult(r, c, 0);
 }
 
 void MainWindow::clearAll()
@@ -400,12 +400,14 @@ void MainWindow::clearAll()
         for (int c = 0; c < 9; c++)
         {
             int value = m_grids[r][c]->value();
-            m_grids[r][c]->setMultiValue(0);
-            if (m_grids[r][c]->isEnabled() && value)
+            if (m_grids[r][c]->isEnabled())
             {
-                ++counts[value];
                 m_grids[r][c]->setValue(0);
-                m_numPositions[value].erase(m_numPositions[value].find(qMakePair(r, c)));
+                if (value)
+                {
+                    ++counts[value];
+                    m_numPositions[value].erase(m_numPositions[value].find(qMakePair(r, c)));
+                }
             }
             m_grids[r][c]->clearConflict();
         }
@@ -417,12 +419,6 @@ void MainWindow::clearAll()
     }
 
     m_buttonGroup->clear();
-
-    //m_undoOps.clear();
-    //m_undoButton->setEnabled(false);
-
-    //m_redoOps.clear();
-    //m_redoButton->setEnabled(false);
 }
 
 
@@ -541,32 +537,3 @@ void MainWindow::solve()
 }
 
 
-void MainWindow::redo()
-{
-    if (m_panel->isVisible())
-    {
-        return;
-    }
-
-    Op op = m_redoOps.pop();
-    m_undoOps.push(op);
-    changeNumber(op.row, op.col, op.before, op.after);
-
-    m_undoButton->setEnabled(true);
-    m_redoButton->setEnabled(m_redoOps.size() > 0);
-}
-
-void MainWindow::undo()
-{
-    if (m_panel->isVisible())
-    {
-        return;
-    }
-
-    Op op = m_undoOps.pop();
-    m_redoOps.push(op);
-    changeNumber(op.row, op.col, op.after, op.before);
-
-    m_redoButton->setEnabled(true);
-    m_undoButton->setEnabled(m_undoOps.size() > 0);
-}

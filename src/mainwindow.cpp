@@ -140,7 +140,10 @@ MainWindow::MainWindow(QWidget *parent) :
                 // 菜单未打开就清空
                 if (!m_panel->isVisible())
                 {
-                    clearGrid(r, c);
+                    if (!m_grids[r][c]->value() || m_grids[r][c]->multiValue())
+                    {
+                        receiveResult(r, c, 0);
+                    }
                     return;
                 }
 
@@ -217,13 +220,11 @@ MainWindow::MainWindow(QWidget *parent) :
     m_undoButton = createButton(nullptr, QSize(halfSize, gridSize), "<");
     //m_undoButton->move(margin + gridSize * 9 + halfSize, margin + gridSize * 9 + halfSize);
     m_undoButton->setStyleSheet(QString("border-top-left-radius:%1px;border-bottom-left-radius:%1px;").arg(halfSize / 2));
-    connect(m_undoButton, SIGNAL(clicked()), this, SLOT(undo()));
 
     // 重做按钮
     m_redoButton = createButton(nullptr, QSize(halfSize, gridSize), ">");
     //m_redoButton->move(margin + gridSize * 10, margin + gridSize * 9 + halfSize);
     m_redoButton->setStyleSheet(QString("border-top-right-radius:%1px;border-bottom-right-radius:%1px;").arg(halfSize / 2));
-    connect(m_redoButton, SIGNAL(clicked()), this, SLOT(redo()));
 
     m_buttonGroup = new ButtonGroup(gridSize);
     m_buttonGroup->setParent(this);
@@ -329,7 +330,6 @@ void MainWindow::highlight(int num, int active)
     }
 }
 
-// Todo:添加对多选的支持（负数即为多选）
 void MainWindow::changeNumber(int r, int c, int previous, int selected)
 {
     int conflicts = 0;
@@ -377,16 +377,6 @@ void MainWindow::changeNumber(int r, int c, int previous, int selected)
 
 }
 
-void MainWindow::clearGrid(int r, int c)
-{
-    // 之前也为空就什么也不做
-    if (m_grids[r][c]->value() == 0 && m_grids[r][c]->multiValue() == 0)
-    {
-        return;
-    }
-    receiveResult(r, c, 0);
-}
-
 void MainWindow::clearAll()
 {
     if (m_panel->isVisible())
@@ -399,9 +389,9 @@ void MainWindow::clearAll()
     {
         for (int c = 0; c < 9; c++)
         {
-            int value = m_grids[r][c]->value();
             if (m_grids[r][c]->isEnabled())
             {
+                int value = m_grids[r][c]->value();
                 m_grids[r][c]->setValue(0);
                 if (value)
                 {
@@ -529,9 +519,11 @@ void MainWindow::solve()
         for (int c = 0; c < 9; c++)
         {
             int value = solver.m_res[r][c];
-            m_grids[r][c]->setMultiValue(0);
-            m_grids[r][c]->setValue(value);
             m_numPositions[value].insert(qMakePair(r, c));
+            if (m_grids[r][c]->isEnabled())
+            {
+                m_grids[r][c]->setValue(value);
+            }
         }
     }
 }

@@ -42,6 +42,15 @@ public:
      */
     void highlight(int num, int active);
 
+    /**
+     * @brief 调整某个单元格的值
+     * @param r 所选行
+     * @param c 所选列
+     * @param previous 修改之前的值
+     * @param selected 修改之后的值
+     */
+    void changeNumber(int r, int c, int previous, int selected);
+
 private slots:
     /**
      * @brief 求解当前数独
@@ -58,17 +67,13 @@ private slots:
      */
     void clearAll();
 
-    /**
-     * @brief 进行多次修改
-     * @param ops 需要进行的操作列表
-     */
     void changeNumbers(QList<Op> ops);
 
 private:
     Ui::MainWindow *ui;
 
     /**
-     * @brief 接收结果，并加入op列表
+     * @brief 接收数据，并加入操作队列
      * @param r 修改的行
      * @param c 修改的列
      * @param value 接收的值，负数表示多选，整数表示单选，0表示清空
@@ -91,13 +96,11 @@ private:
     void smartAssistOff(int r, int c);
 
     /**
-     * @brief 调整某个单元格的值
+     * @brief 清除某个单元格的值
      * @param r 所选行
      * @param c 所选列
-     * @param previous 修改之前的值
-     * @param selected 修改之后的值
      */
-    void changeNumber(int r, int c, int previous, int selected);
+    void clearGrid(int r, int c);
 
     /*****************************/
 

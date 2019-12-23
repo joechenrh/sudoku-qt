@@ -480,9 +480,6 @@ void MainWindow::loadRandomPuzzle()
     }
 
     m_buttonGroup->clear();
-    //m_undoOps.clear();
-    //m_undoButton->setEnabled(false);
-    //m_redoButton->setEnabled(false);
 }
 
 void MainWindow::solve()
@@ -526,6 +523,8 @@ void MainWindow::solve()
             }
         }
     }
+
+    m_buttonGroup->clear();
 }
 
 

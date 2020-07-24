@@ -30,6 +30,7 @@ INCLUDEPATH += \
 SOURCES += \
         main.cpp \
     src/mainwindow.cpp \
+    src/sudokulogic.cpp \
     src/widgets/basewidget.cpp \
     src/widgets/selectpanel.cpp \
     src/widgets/gridwidget.cpp \
@@ -46,7 +47,8 @@ HEADERS += \
     include/widgets/gridwidget.h   \
     include/widgets/gridmarker.h \
     include/widgets/counter.h \
-    include/widgets/buttongroup.h
+    include/widgets/buttongroup.h \
+    src/sudokulogic.h
 
 FORMS += \
     ui/mainwindow.ui
